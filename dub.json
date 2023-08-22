@@ -1,0 +1,13 @@
+{
+	"authors": [
+		"Olivier Pisano"
+	],
+	"copyright": "Copyright © 2023, Olivier Pisano",
+	"dependencies": {
+		"derelict-sdl2": "~>2.1.4",
+		"automem": "~>0.6.9"
+	},
+	"description": "A minimal D application.",
+	"license": "proprietary",
+	"name": "adv"
+}
