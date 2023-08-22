@@ -23,6 +23,7 @@ The only dependencies you need on your system are:
  * sdl2-ttf 
  * sdl2-image 
 
+
     sudo apt install libsdl2-2.0-0 libsd2-ttf-2.0-0 libsdl2-image-2.0-0
 
 

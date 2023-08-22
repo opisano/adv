@@ -36,7 +36,7 @@ interface UserInterface : Drawable, Updatable
 }
 
 /** 
- * Draw a white rectangle to be used in menus.
+ * Draw a rectangle to be used in menus.
  * 
  * Params:
  *     pRenderer = A pointer to the SDL renderer to draw to.

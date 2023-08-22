@@ -28,10 +28,7 @@ abstract class Widget
      */
     abstract void draw(scope SDL_Renderer* pRenderer, bool active);
 
-    abstract void onKeyDown(scope ref SDL_KeyboardEvent event)
-    {
-
-    }
+    abstract void onKeyDown(scope ref SDL_KeyboardEvent event);
 
 protected:
 
