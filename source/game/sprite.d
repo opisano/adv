@@ -142,7 +142,7 @@ struct Animation
      */
     this(RC!SpriteSheet pSpriteSheet, size_t[] indices)
     {
-        m_pSpriteSheet = pSpriteSheet;
+        m_spriteSheet = pSpriteSheet;
 
         // Construct an infinite range (iterator) over indices.
         m_indices = cycle(indices);
@@ -154,7 +154,7 @@ struct Animation
     /// Get Rect of current animation frame
     SDL_Rect front() const
     {
-        return m_spriteSheet[m_indices.front];
+        return (*m_spriteSheet)[m_indices.front];
     }
 
     /// skip to next frame
@@ -165,5 +165,5 @@ struct Animation
 
 private:
     RC!SpriteSheet m_spriteSheet;
-    Cycle!size_t[] m_indices;
+    Cycle!(size_t[]) m_indices;
 }
