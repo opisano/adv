@@ -26,7 +26,14 @@ enum MS_PER_UPDATE = 20L;
 enum WINDOW_WIDTH = 512;
 enum WINDOW_HEIGHT = 448;
 
-
+/** 
+ * An Application is a structure that contains a stack of UserInterface objects 
+ * and a main loop.
+ * 
+ * The loop consists in three steps : input(), update() and display().
+ * 
+ * The application delegates in main loop steps to its UserInterface stack. 
+ */
 struct App 
 {
     /** 
@@ -86,16 +93,25 @@ struct App
         }
     }
 
+    /** 
+     * Remove the UserInterface at the top of the stack.
+     */
     void popInterface()
     {
         m_uis.popBack();
     }
 
+    /** 
+     * Put some UserInterface on the top of the stack.
+     */
     void pushInterface(UserInterface intf)
     {
         m_uis ~= intf;
     }
 
+    /** 
+     * Access the renderer component.
+     */
     SDL_Renderer* renderer()
     {
         return m_pRenderer;
@@ -149,11 +165,17 @@ private:
         }
     }
 
+    /** 
+     * Create the Start menu and put it at the top of the stack
+     */
     void createStartMenu()
     {
         pushInterface(new StartMenu(&this));
     }
 
+    /** 
+     * The main loop display step, performs the rendering.
+     */
 	void doDisplay()
 	{
 		SDL_RenderClear(m_pRenderer);
@@ -167,27 +189,37 @@ private:
 		SDL_RenderPresent(m_pRenderer);
 	}
 
+    /** 
+     * The main loop update step, updates the world state.
+     */
     void doUpdate(ulong timeElapsedMs)
     {
         if (m_uis.length)
             m_uis[$-1].update(timeElapsedMs);
     }
 
+    /** 
+     * The main loop input step, reacts to player input.
+     */
 	void doInput()
 	{
         if (m_uis.length)
         {
             m_uis[$-1].input();
         }
-        else 
+        else // if there is no more UI on the stack, exit main loop
         {
             m_active = false;
         }
 	}
 
+    /// The user interface stack
     UserInterface[] m_uis;
+    /// The SDL component that talks to the GPU
 	SDL_Renderer* m_pRenderer;
+    /// The Application window
 	SDL_Window* m_pWindow;
+    /// Main loop condition, exit application when set to false
 	bool m_active;
 }
 

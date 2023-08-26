@@ -36,12 +36,12 @@ final class TopDown : UserInterface
                                                .build();
 
         m_input = m_char.m_input = new InputComponent(&m_char);
-        m_char.x = 50;
-        m_char.y = 50;
+        m_char.x = WINDOW_WIDTH / 2 - 16;
+        m_char.y = WINDOW_HEIGHT / 2 - 16;
     }
 
     /** 
-     * Load the map 
+     * Load the map
      * 
      * Params:
      *     pRenderer = The renderer (will store the tiles as textures).
@@ -63,6 +63,7 @@ final class TopDown : UserInterface
 
     override void update(ulong timeElapsedMs)
     {
+        updateViewPort();
         m_char.update(timeElapsedMs);
     }
 
@@ -93,20 +94,29 @@ final class TopDown : UserInterface
     }
 
 private:
+    void updateViewPort()
+    {
+        m_viewport.x = m_char.x - (WINDOW_WIDTH / 2);
+    }
 
     void drawMap(scope SDL_Renderer* pRenderer)
     {
         foreach (i, ref layer; m_map.layers)
         {
-            foreach (dst, src; layer.data)
-            {
-                SDL_Rect srcRect = m_map.tileSets[0][src-1];
-                SDL_Rect dstRect = m_map[dst];
-                dstRect.x += m_viewport.x;
-                dstRect.y += m_viewport.y;
+            drawMapLayer(pRenderer, layer);
+        }
+    }
 
-                SDL_RenderCopy(pRenderer, m_map.tileSets[0].pTexture, &srcRect, &dstRect);
-            }
+    void drawMapLayer(scope SDL_Renderer* pRenderer, scope ref Layer layer)
+    {
+        foreach (dst, src; layer.data)
+        {
+            SDL_Rect srcRect = m_map.tileSets[0][src-1];
+            SDL_Rect dstRect = m_map[dst];
+            dstRect.x -= m_viewport.x;
+            dstRect.y -= m_viewport.y;
+
+            SDL_RenderCopy(pRenderer, m_map.tileSets[0].pTexture, &srcRect, &dstRect);
         }
     }
 
@@ -384,7 +394,9 @@ struct Character
         }
         
         // Determine where to draw on the screen
-        SDL_Rect dstRect = SDL_Rect(x + viewPort.x, y + viewPort.y, srcRect.w, srcRect.h);
+        //SDL_Rect dstRect = SDL_Rect(x + viewPort.x, y + viewPort.y, srcRect.w, srcRect.h);
+        SDL_Rect dstRect = SDL_Rect(WINDOW_WIDTH / 2 - 16, WINDOW_HEIGHT / 2 - 16, 32, 32);
+
         SDL_RenderCopy(pRenderer, anim.texture, &srcRect, &dstRect);
     }
 
@@ -400,7 +412,7 @@ struct Character
     Animation[4] m_walkingAnimations;
     Animation[4] m_standingAnimation;
     ulong m_stateDurationMs;
-    ulong m_walkingAnimationDurationMs = 300;
+    ulong m_walkingAnimationDurationMs = 150;
     Orientation m_orientation;
     State m_state;
 
