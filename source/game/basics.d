@@ -3,6 +3,18 @@ module game.basics;
 import derelict.sdl2.sdl;
 
 /** 
+ * Direction a character is facing. 
+ */
+enum Orientation
+{
+    Top,
+    Right,
+    Bottom,
+    Left
+}
+
+
+/** 
  * Something to be drawn on the screen
  */
 interface Drawable 
