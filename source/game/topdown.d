@@ -9,6 +9,7 @@ import game.character;
 import game.sprite;
 import game.map;
 
+import std.algorithm.sorting;
 import std.experimental.logger;
 
 
@@ -31,11 +32,11 @@ final class TopDown : UserInterface
         m_char.x = WINDOW_WIDTH / 2 - 16;
         m_char.y = WINDOW_HEIGHT / 2 - 16;
 
-        m_pnj = createCharacter(pSpriteSheet, 5);
-        m_pnj.x = 100;
-        m_pnj.y = 50;
-        m_pnj.m_orientation = Orientation.Bottom;
-        m_pnj.m_input = new WalkingNPCComponent(&m_pnj);
+        m_pnj ~= createCharacter(pSpriteSheet, 5);
+        m_pnj[$-1].x = 100;
+        m_pnj[$-1].y = 50;
+        m_pnj[$-1].m_orientation = Orientation.Bottom;
+        m_pnj[$-1].m_input = new WalkingNPCComponent(&m_pnj[$-1]);
     }
 
     /** 
@@ -48,6 +49,11 @@ final class TopDown : UserInterface
     void loadMap(SDL_Renderer* pRenderer, string filename)
     {
         m_map = game.map.loadMap(pRenderer, filename);
+        m_char.m_collision = new CollisionComponent(&m_char, &m_map);
+        foreach (ref pnj; m_pnj)
+        {
+            pnj.m_collision = new CollisionComponent(&pnj, &m_map);
+        }
     }
 
     /** 
@@ -63,7 +69,11 @@ final class TopDown : UserInterface
     {
         updateViewPort();
         m_char.update(timeElapsedMs);
-        m_pnj.update(timeElapsedMs);
+
+        foreach (ref pnj; m_pnj)
+        {
+            pnj.update(timeElapsedMs);
+        }
     }
 
     override void input()
@@ -103,7 +113,10 @@ private:
     {
         foreach (i, ref layer; m_map.layers)
         {
-            drawMapLayer(pRenderer, layer);
+            if (layer.name != "collision")
+            {
+                drawMapLayer(pRenderer, layer);
+            }
         }
     }
 
@@ -122,8 +135,25 @@ private:
 
     void drawChar(scope SDL_Renderer* pRenderer)
     {
+        m_pnj[].sort!("a.y < b.y");
+
+        size_t i;
+        for (i = 0; i < m_pnj.length; ++i)
+        {
+            if (m_pnj[i].y >= m_char.y)
+            {
+                break;
+            }
+
+            m_pnj[i].draw(pRenderer, m_viewport);
+        }
+
         m_char.draw(pRenderer, m_viewport);
-        m_pnj.draw(pRenderer, m_viewport);
+
+        for (; i < m_pnj.length; ++i)
+        {
+            m_pnj[i].draw(pRenderer, m_viewport);
+        }
     }
 
     void doKeyDown(scope ref SDL_KeyboardEvent event)
@@ -134,22 +164,22 @@ private:
         switch (event.keysym.sym)
         {
             case SDLK_UP:
-                info("Up pressed");
+                trace("Up pressed");
                 m_input.setDirectionPressed(Orientation.Top);
                 break;
             
             case SDLK_RIGHT:
-                info("Right pressed");
+                trace("Right pressed");
                 m_input.setDirectionPressed(Orientation.Right);
                 break;
 
             case SDLK_DOWN:
-                info("Down pressed"); 
+                trace("Down pressed"); 
                 m_input.setDirectionPressed(Orientation.Bottom);
                 break;
             
             case SDLK_LEFT:
-                info("Left pressed");
+                trace("Left pressed");
                 m_input.setDirectionPressed(Orientation.Left);
                 break;
 
@@ -166,22 +196,22 @@ private:
         switch (event.keysym.sym)
         {
             case SDLK_UP:
-                info("Up released");
+                trace("Up released");
                 m_input.setDirectionReleased(Orientation.Top);
                 break;
             
             case SDLK_RIGHT:
-                info("Right released");
+                trace("Right released");
                 m_input.setDirectionReleased(Orientation.Right);
                 break;
 
             case SDLK_DOWN: 
-                info("Down released");
+                trace("Down released");
                 m_input.setDirectionReleased(Orientation.Bottom);
                 break;
             
             case SDLK_LEFT:
-                info("Left released");
+                trace("Left released");
                 m_input.setDirectionReleased(Orientation.Left);
                 break;
 
@@ -197,6 +227,6 @@ private:
 
     InputComponent m_input;
     Character m_char;
-    Character m_pnj;
+    Character[] m_pnj;
 }
 

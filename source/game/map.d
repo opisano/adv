@@ -5,6 +5,7 @@ import automem.vector;
 import core.exception;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
+import std.algorithm.searching;
 import std.exception;
 import std.format;
 import std.stdio;
@@ -42,6 +43,12 @@ struct Map
      *     The Region in pixels as a SDL_Rect structure.
      */ 
     SDL_Rect opIndex(size_t index) pure const nothrow
+    in 
+    {
+        assert (index >= 0);
+        assert (index < layers[0].data.length);
+    }
+    do
     {
         immutable int row = cast(int) (index / width);
         immutable int col = index % width;
@@ -59,6 +66,125 @@ struct Map
     int pixelHeight() const
     {
         return tileHeight * height;
+    }
+
+    /** 
+     * Returns the bounding box of the first tile on the left of a position 
+     * which can collide
+     */
+    SDL_Rect leftOf(int x, int y)
+    {
+        // grab the collision layer
+        auto l = layers[].countUntil!(l => l.name == "collision");
+
+        // convert x to tile column index
+        int col = x / tileWidth;
+
+        // convert y to tile row index 
+        int row = y / tileHeight;
+
+        while (col >= 0)
+        {
+            size_t index = row * width + col;
+            if (layers[l].data[index] != 0)
+            {
+                return this[index];
+            }
+            col--;
+        }
+
+        // No collision found, return a rect with a negative X
+        size_t index = row * width;
+        SDL_Rect result = this[index];
+        result.x -= tileWidth;
+        return result;
+    }
+
+    /** 
+     * Returns the bounding box of the first tile on the left of a position 
+     * which can collide
+     */
+    SDL_Rect rightOf(int x, int y)
+    {
+        // grab the collision layer
+        auto l = layers[].countUntil!(l => l.name == "collision");
+
+        // convert x to tile column index
+        int col = x / tileWidth;
+
+        // convert y to tile row index 
+        int row = y / tileHeight;
+
+        while (++col < width)
+        {
+            size_t index = row * width + col;
+            if (layers[l].data[index] != 0)
+            {
+                return this[index];
+            }
+        }
+
+        // No collision found, return a rect with outside the map
+        size_t index = row * width + (width -1);
+        SDL_Rect result = this[index];
+        result.x += tileWidth;
+        return result;
+    }
+
+    SDL_Rect topOf(int x, int y)
+    {
+        // grab the collision layer
+        auto l = layers[].countUntil!(l => l.name
+         == "collision");
+
+        // convert x to tile column index
+        int col = x / tileWidth;
+
+        // convert y to tile row index 
+        int row = y / tileHeight;
+
+        while (row >= 0)
+        {
+            size_t index = row * width + col;
+            if (layers[l].data[index] != 0)
+            {
+                return this[index];
+            }
+            row--;
+        }
+
+        // No collision found, return a rect with outside the map
+        size_t index = row * width + (width -1);
+        SDL_Rect result = this[index];
+        result.y -= tileHeight;
+        return result;
+    }
+
+    SDL_Rect bottomOf(int x, int y)
+    {
+        // grab the collision layer
+        auto l = layers[].countUntil!(l => l.name == "collision");
+
+        // convert x to tile column index
+        int col = x / tileWidth;
+
+        // convert y to tile row index 
+        int row = y / tileHeight;
+
+        while (++row < height)
+        {
+            size_t index = row * width + col;
+            if (layers[l].data[index] != 0)
+            {
+                return this[index];
+            }
+        }
+
+        // No collision found, return a rect with outside the map
+        size_t index = (row-1) * width + col;
+        SDL_Rect result = this[index];
+        result.y += tileHeight;
+        return result;
     }
 }
 
@@ -116,6 +242,7 @@ struct TileSet
 struct Layer
 {
     ushort id;
+    Vector!(char) name;
     Vector!(ushort) data;
 }
 
@@ -192,9 +319,13 @@ Map loadMap(scope SDL_Renderer* pRenderer, string filename)
 
         for (int i = 0; i < len; ++i)
         {
+            ushort[2] buffer2;
             result.layers.put(Layer());
-            f.rawRead!ushort(buffer[]);
-            result.layers[$-1].id = buffer[0];
+            auto b = f.rawRead!ushort(buffer2[]);
+            result.layers[$-1].id = b[0];
+            result.layers[$-1].name.length = b[1];
+            f.rawRead!char(result.layers[$-1].name[]);
+             
 
             f.rawRead!ushort(buffer[]);
             result.layers[$-1].data.length = buffer[0];

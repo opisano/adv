@@ -5,6 +5,7 @@ import app: WINDOW_HEIGHT, WINDOW_WIDTH;
 import automem.ref_counted;
 import derelict.sdl2.sdl;
 import game.basics;
+import game.map;
 import game.sprite;
 import std.algorithm.searching: any;
 import std.experimental.logger;
@@ -84,7 +85,7 @@ class InputComponent: Updatable
         }
         else 
         {
-            infof("State changed to %s ", m_pChar.m_state);
+            tracef("State changed to %s ", m_pChar.m_state);
             m_pChar.m_stateDurationMs = 0;
         }
     }
@@ -174,6 +175,100 @@ private:
     long m_remainingTimeMs;
 }
 
+class CollisionComponent : Updatable 
+{
+    this(Character* pChar, Map* pMap)
+    {
+        m_pChar = pChar;
+        m_pMap = pMap;
+    }
+
+    override void update(ulong elapsedTimeMs)
+    {
+        if (m_pChar.hVelocity < 0)
+        {
+            testCollisionLeft();
+        }
+        else if (m_pChar.hVelocity > 0)
+        {
+            testCollisionRight();
+        }
+
+        if (m_pChar.vVelocity < 0)
+        {
+            testCollisionTop();
+        }
+        else if (m_pChar.vVelocity > 0)
+        {
+            testCollisionBottom();
+        }
+    }
+
+private:
+
+    void testCollisionLeft()
+    {
+        auto charRect = m_pChar.bbox();
+        auto leftBbox = m_pMap.leftOf(charRect.x, charRect.y);
+
+        if (collide(charRect, leftBbox))
+        {
+            m_pChar.hVelocity = 0;
+        }
+    }
+
+    void testCollisionRight()
+    {
+        auto charRect = m_pChar.bbox();
+        auto rightBbox = m_pMap.rightOf(charRect.x, charRect.y);
+
+        if (collide(charRect, rightBbox))
+        {
+            m_pChar.hVelocity = 0;
+        }
+    }
+
+    void testCollisionTop()
+    {
+        auto charRect = m_pChar.bbox();
+        auto rightBbox = m_pMap.topOf(charRect.x, charRect.y);
+
+        if (collide(charRect, rightBbox))
+        {
+            m_pChar.vVelocity = 0;
+        }
+    }
+
+    void testCollisionBottom()
+    {
+        auto charRect = m_pChar.bbox();
+        auto rightBbox = m_pMap.bottomOf(charRect.x, charRect.y);
+
+        if (collide(charRect, rightBbox))
+        {
+            m_pChar.vVelocity = 0;
+        }
+    }
+
+    /** 
+     * Return whether there is a collision between two boxes or not 
+     */
+    static bool collide(scope ref const(SDL_Rect) rect1, scope ref const(SDL_Rect) rect2) pure 
+    {
+        if((rect2.x >= rect1.x + rect1.w)
+	            || (rect2.x + rect2.w <= rect1.x) 
+	            || (rect2.y >= rect1.y + rect1.h) 
+	            || (rect2.y + rect2.h <= rect1.y))
+            return false; 
+        else
+            return true;
+    }
+
+
+    Character* m_pChar;
+    Map* m_pMap;
+}
+
 
 struct CharacterBuilder
 {
@@ -227,7 +322,7 @@ private:
 
 
 /** 
- * Holds information about a character in a top down view.
+ * Holds tracermation about a character in a top down view.
  */
 struct Character 
 {
@@ -271,9 +366,15 @@ struct Character
     void update(ulong timeEllapsedMs)
     {
         m_input.update(timeEllapsedMs);
+        m_collision.update(timeEllapsedMs);
 
         x += hVelocity;
         y += vVelocity;
+    }
+
+    SDL_Rect bbox() const 
+    {
+        return SDL_Rect(x, y + 16, 32, 16);
     }
 
     // Animation data 
@@ -292,8 +393,10 @@ struct Character
     int hVelocity;
     int vVelocity;
 
-    // Component that change animation state
+    // Component that react to user input
     InputComponent m_input;
+    // Component that react to collisions 
+    CollisionComponent m_collision;
 }
 
 Character createCharacter(RC!SpriteSheet pSpriteSheet, int charIndex)
