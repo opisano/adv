@@ -97,6 +97,7 @@ private:
     void updateViewPort()
     {
         m_viewport.x = m_char.x - (WINDOW_WIDTH / 2);
+        m_viewport.y = m_char.y - (WINDOW_HEIGHT / 2);
     }
 
     void drawMap(scope SDL_Renderer* pRenderer)
