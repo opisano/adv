@@ -26,10 +26,16 @@ final class TopDown : UserInterface
                                                                                   .spriteHeight(32)
                                                                                   .build();
 
-        m_char = createCharacter(pSpriteSheet, 7);
+        m_char = createCharacter(pSpriteSheet, 0);
         m_input = m_char.m_input = new InputComponent(&m_char);
         m_char.x = WINDOW_WIDTH / 2 - 16;
         m_char.y = WINDOW_HEIGHT / 2 - 16;
+
+        m_pnj = createCharacter(pSpriteSheet, 5);
+        m_pnj.x = 100;
+        m_pnj.y = 50;
+        m_pnj.m_orientation = Orientation.Bottom;
+        m_pnj.m_input = new WalkingNPCComponent(&m_pnj);
     }
 
     /** 
@@ -57,6 +63,7 @@ final class TopDown : UserInterface
     {
         updateViewPort();
         m_char.update(timeElapsedMs);
+        m_pnj.update(timeElapsedMs);
     }
 
     override void input()
@@ -116,6 +123,7 @@ private:
     void drawChar(scope SDL_Renderer* pRenderer)
     {
         m_char.draw(pRenderer, m_viewport);
+        m_pnj.draw(pRenderer, m_viewport);
     }
 
     void doKeyDown(scope ref SDL_KeyboardEvent event)
@@ -189,5 +197,6 @@ private:
 
     InputComponent m_input;
     Character m_char;
+    Character m_pnj;
 }
 

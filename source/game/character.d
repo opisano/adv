@@ -8,6 +8,7 @@ import game.basics;
 import game.sprite;
 import std.algorithm.searching: any;
 import std.experimental.logger;
+import std.random;
 
 /** 
  * A character State
@@ -109,10 +110,68 @@ class InputComponent: Updatable
         m_actionPressed = false;
     }
 
-private:
+protected:
     Character* m_pChar;
     bool[4] m_directionsPressed;
     bool m_actionPressed;
+}
+
+/** 
+ * NPC Artificial Intelligence 
+ * 
+ * In towns, NPC wander in a random direction for a duration then stop.
+ */
+final class WalkingNPCComponent : InputComponent
+{
+    this(Character* pChar)
+    {
+        super(pChar);
+    }
+
+    override void update(ulong timeElapsedMs)
+    {
+        m_remainingTimeMs -= cast(long)timeElapsedMs;
+        if (m_remainingTimeMs <= 0)
+        {
+            changeState();
+        }
+
+        super.update(timeElapsedMs);
+    }
+
+private:
+    void changeState()
+    {
+        if (m_directionsPressed[].any)
+        {
+            changeToStanding();
+        }
+        else 
+        {
+            changeToWalking();
+        }
+    }
+
+    void changeToStanding()
+    {
+        m_directionsPressed[] = false;
+
+        // stay standing for a random duration
+        m_remainingTimeMs = [250, 300, 500, 600, 750, 900, 1000].choice;
+    }
+
+    void changeToWalking()
+    {
+        Orientation orient = [Orientation.Top, Orientation.Right, Orientation.Bottom, Orientation.Left].choice;
+        m_directionsPressed[] = false;
+        m_directionsPressed[cast(int)orient] = true;
+
+        // stay walking for a random duration 
+        m_remainingTimeMs = [200, 300, 400, 500].choice;
+    }
+
+    // Remaining time in current state
+    long m_remainingTimeMs;
 }
 
 
@@ -195,12 +254,18 @@ struct Character
             srcRect = anim.front;
             break;
         }
-        
-        // Determine where to draw on the screen
-        //SDL_Rect dstRect = SDL_Rect(x + viewPort.x, y + viewPort.y, srcRect.w, srcRect.h);
-        SDL_Rect dstRect = SDL_Rect(WINDOW_WIDTH / 2 - 16, WINDOW_HEIGHT / 2 - 16, 32, 32);
 
-        SDL_RenderCopy(pRenderer, anim.texture, &srcRect, &dstRect);
+        int screenX = x - viewPort.x;
+        int screenY = y - viewPort.y;
+
+        if ((screenX >= -32 && screenX < WINDOW_WIDTH)
+            && (screenY >= -32 && screenY < WINDOW_HEIGHT))
+        {
+        
+            // Determine where to draw on the screen
+            SDL_Rect dstRect = SDL_Rect(screenX, screenY, srcRect.w, srcRect.h);
+            SDL_RenderCopy(pRenderer, anim.texture, &srcRect, &dstRect);
+        }
     }
 
     void update(ulong timeEllapsedMs)
