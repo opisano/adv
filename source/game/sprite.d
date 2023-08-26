@@ -140,7 +140,7 @@ struct Animation
      *     pSpriteSheet = the sprite sheet 
      *     indices = an array of size_t indices.
      */
-    this(RC!SpriteSheet pSpriteSheet, size_t[] indices)
+    this(RC!SpriteSheet pSpriteSheet, int[] indices)
     {
         m_spriteSheet = pSpriteSheet;
 
@@ -163,7 +163,12 @@ struct Animation
         m_indices.popFront();
     }
 
+    SDL_Texture* texture()
+    {
+        return m_spriteSheet.m_pTexture;
+    }
+
 private:
     RC!SpriteSheet m_spriteSheet;
-    Cycle!(size_t[]) m_indices;
+    Cycle!(int[]) m_indices;
 }

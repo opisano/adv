@@ -1,9 +1,11 @@
 module game.topdown;
 
 import app: App, WINDOW_WIDTH, WINDOW_HEIGHT;
+import automem;
 import derelict.sdl2.sdl;
 
 import game.basics;
+import game.sprite;
 import game.map;
 
 import std.algorithm.comparison: min, max;
@@ -19,6 +21,21 @@ final class TopDown : UserInterface
     {
         m_pApp = app;
         m_input = new InputComponent(this);
+        auto pSpriteSheet = SpriteSheetBuilder(app.renderer, "sprites/Actor1.png").width(12)
+                                                                                  .height(8)
+                                                                                  .spriteWidth(32)
+                                                                                  .spriteHeight(32)
+                                                                                  .build();
+
+        m_char = CharacterBuilder(pSpriteSheet).standing(37, 25, 1, 13)
+                                               .walkingTop([36, 37, 38, 37])
+                                               .walkingRight([24, 25, 26, 25])
+                                               .walkingBottom([0, 1, 2, 1])
+                                               .walkingLeft([12, 13, 14, 13])
+                                               .build();
+
+        m_char.x = 50;
+        m_char.y = 50;
     }
 
     /** 
@@ -39,6 +56,7 @@ final class TopDown : UserInterface
     override void draw(scope SDL_Renderer* pRenderer)
     {
         drawMap(pRenderer);
+        drawChar(pRenderer);
     }   
 
     override void update(ulong timeElapsedMs)
@@ -88,6 +106,11 @@ private:
                 SDL_RenderCopy(pRenderer, m_map.tileSets[0].pTexture, &srcRect, &dstRect);
             }
         }
+    }
+
+    void drawChar(scope SDL_Renderer* pRenderer)
+    {
+        m_char.draw(pRenderer, m_viewport);
     }
 
     void doKeyDown(scope ref SDL_KeyboardEvent event)
@@ -160,6 +183,7 @@ private:
     SDL_Point m_viewport;
 
     InputComponent m_input;
+    Character m_char;
 }
 
 
@@ -172,6 +196,12 @@ enum Orientation
     Right,
     Bottom,
     Left
+}
+
+enum State 
+{
+    Standing,
+    Walking
 }
 
 
@@ -237,4 +267,95 @@ private:
     TopDown m_topDown;
     bool[4] m_directionsPressed;
     bool m_actionPressed;
+}
+
+
+struct CharacterBuilder
+{
+    this(RC!SpriteSheet pSpriteSheet)
+    {
+        m_pSpriteSheet = pSpriteSheet;
+    }
+
+    ref CharacterBuilder standing(int top, int right, int bottom, int left) return 
+    {
+        m_char.m_standingAnimation[cast(int)Orientation.Top] = Animation(m_pSpriteSheet, [top]);
+        m_char.m_standingAnimation[cast(int)Orientation.Right] = Animation(m_pSpriteSheet, [right]);
+        m_char.m_standingAnimation[cast(int)Orientation.Bottom] = Animation(m_pSpriteSheet, [bottom]);
+        m_char.m_standingAnimation[cast(int)Orientation.Left] = Animation(m_pSpriteSheet, [left]);
+        return this;
+    }
+
+    ref CharacterBuilder walkingTop(int[] indices) return 
+    {
+        m_char.m_walkingAnimations[cast(int)Orientation.Top] = Animation(m_pSpriteSheet, indices);
+        return this;
+    }
+
+    ref CharacterBuilder walkingRight(int[] indices) return 
+    {
+        m_char.m_walkingAnimations[cast(int)Orientation.Right] = Animation(m_pSpriteSheet, indices);
+        return this;
+    }
+
+    ref CharacterBuilder walkingBottom(int[] indices) return 
+    {
+        m_char.m_walkingAnimations[cast(int)Orientation.Bottom] = Animation(m_pSpriteSheet, indices);
+        return this;
+    }
+
+    ref CharacterBuilder walkingLeft(int[] indices) return 
+    {
+        m_char.m_walkingAnimations[cast(int)Orientation.Left] = Animation(m_pSpriteSheet, indices);
+        return this;
+    }
+
+    Character build()
+    {
+        return m_char;
+    }
+
+private:
+    RC!SpriteSheet m_pSpriteSheet;
+    Character m_char;
+}
+
+/** 
+ * Holds information about a character in a top down view.
+ */
+struct Character 
+{
+    void draw(scope SDL_Renderer* pRenderer, SDL_Point viewPort)
+    {
+        // Determine the animation phase to draw
+        Animation* anim;
+        final switch (m_state)
+        {
+        case State.Standing:
+            anim = &m_standingAnimation[cast(int)m_orientation];
+            break;
+
+        case State.Walking:
+            anim = &m_walkingAnimations[cast(int)m_orientation];
+            break;
+        }
+
+        SDL_Rect srcRect = anim.front;
+
+        // Determine where to draw on the screen
+        SDL_Rect dstRect = SDL_Rect(x + viewPort.x, y + viewPort.y, srcRect.w, srcRect.h);
+        
+        SDL_RenderCopy(pRenderer, anim.texture, &srcRect, &dstRect);
+    }
+
+
+    // Animation data 
+    Animation[4] m_walkingAnimations;
+    Animation[4] m_standingAnimation;
+    Orientation m_orientation;
+    State m_state;
+
+    // Position in map coordinates
+    int x;
+    int y;
 }
