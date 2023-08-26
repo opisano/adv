@@ -7,6 +7,7 @@ import derelict.sdl2.sdl;
 import game.basics;
 import game.map;
 import game.sprite;
+import math.vector2d;
 import std.algorithm.searching: any;
 import std.experimental.logger;
 import std.random;
@@ -43,39 +44,38 @@ class InputComponent: Updatable
         if (!m_directionsPressed[].any)
         {
             m_pChar.m_state = State.Standing;
-            m_pChar.hVelocity = m_pChar.vVelocity = 0;
+            m_pChar.m_velocity = Vector2D!(float).ZERO;
         }
         else 
         {
             m_pChar.m_state = State.Walking;
 
-            int hVelocity, vVelocity;
+            auto velocity = Vector2D!(float).ZERO;
             if (m_directionsPressed[cast(size_t)Orientation.Top]) 
             {
                 m_pChar.m_orientation = Orientation.Top;
-                vVelocity += -1;
+                velocity.y -= 1;
             }
 
             if (m_directionsPressed[cast(size_t)Orientation.Right])
             {
                 m_pChar.m_orientation = Orientation.Right;
-                hVelocity += 1;
+                velocity.x += 1;
             }
 
             if (m_directionsPressed[cast(size_t)Orientation.Bottom])
             {
                 m_pChar.m_orientation = Orientation.Bottom;
-                vVelocity += 1;
+                velocity.y += 1;
             }
 
             if (m_directionsPressed[cast(size_t)Orientation.Left])
             {
                 m_pChar.m_orientation = Orientation.Left;
-                hVelocity += -1;
+                velocity.x -= 1;
             }
 
-            m_pChar.vVelocity = vVelocity;
-            m_pChar.hVelocity = hVelocity;
+            m_pChar.m_velocity = velocity;
         }
 
         // Update state duration
@@ -185,20 +185,20 @@ class CollisionComponent : Updatable
 
     override void update(ulong elapsedTimeMs)
     {
-        if (m_pChar.hVelocity < 0)
+        if (m_pChar.m_velocity.x < 0)
         {
             testCollisionLeft();
         }
-        else if (m_pChar.hVelocity > 0)
+        else if (m_pChar.m_velocity.y > 0)
         {
             testCollisionRight();
         }
 
-        if (m_pChar.vVelocity < 0)
+        if (m_pChar.m_velocity.y < 0)
         {
             testCollisionTop();
         }
-        else if (m_pChar.vVelocity > 0)
+        else if (m_pChar.m_velocity.y > 0)
         {
             testCollisionBottom();
         }
@@ -213,7 +213,7 @@ private:
 
         if (collide(charRect, leftBbox))
         {
-            m_pChar.hVelocity = 0;
+            m_pChar.m_velocity.x = 0;
         }
     }
 
@@ -224,7 +224,7 @@ private:
 
         if (collide(charRect, rightBbox))
         {
-            m_pChar.hVelocity = 0;
+            m_pChar.m_velocity.x = 0;
         }
     }
 
@@ -235,7 +235,7 @@ private:
 
         if (collide(charRect, rightBbox))
         {
-            m_pChar.vVelocity = 0;
+            m_pChar.m_velocity.y = 0;
         }
     }
 
@@ -246,7 +246,7 @@ private:
 
         if (collide(charRect, rightBbox))
         {
-            m_pChar.vVelocity = 0;
+            m_pChar.m_velocity.y = 0;
         }
     }
 
@@ -350,8 +350,8 @@ struct Character
             break;
         }
 
-        int screenX = x - viewPort.x;
-        int screenY = y - viewPort.y;
+        int screenX = cast(int)m_position.x - viewPort.x;
+        int screenY = cast(int)m_position.y - viewPort.y;
 
         if ((screenX >= -32 && screenX < WINDOW_WIDTH)
             && (screenY >= -32 && screenY < WINDOW_HEIGHT))
@@ -368,13 +368,14 @@ struct Character
         m_input.update(timeEllapsedMs);
         m_collision.update(timeEllapsedMs);
 
-        x += hVelocity;
-        y += vVelocity;
+        if (m_velocity.length > 0) {
+            m_position += m_velocity.normalized * m_speed;
+        }
     }
 
     SDL_Rect bbox() const 
     {
-        return SDL_Rect(x, y + 16, 32, 16);
+        return SDL_Rect(cast(int)m_position.x, cast(int)m_position.y + 16, 32, 16);
     }
 
     // Animation data 
@@ -386,12 +387,13 @@ struct Character
     State m_state;
 
     // Position in map coordinates
-    int x;
-    int y;
+    auto m_position = Vector2D!(float).ZERO;
 
     // Velocity on axes
-    int hVelocity;
-    int vVelocity;
+    auto m_velocity = Vector2D!(float).ZERO;
+
+    // Speed multiplier
+    float m_speed = 1.0;
 
     // Component that react to user input
     InputComponent m_input;
