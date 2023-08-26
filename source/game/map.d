@@ -163,7 +163,7 @@ Map loadMap(scope SDL_Renderer* pRenderer, string filename)
         for (int i = 0; i < len; ++i)
         {
             ushort[5] buffer2;
-            result.tileSets.put(RC!TileSet());
+            result.tileSets.put(RC!TileSet.construct());
             ushort[] b = f.rawRead!ushort(buffer2[]);
             result.tileSets[$-1].firstGid = b[0];
             result.tileSets[$-1].tileWidth = b[1];
