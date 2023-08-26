@@ -9,7 +9,9 @@ import game.sprite;
 import game.map;
 
 import std.algorithm.comparison: min, max;
+import std.algorithm.searching: any;
 import std.experimental.logger;
+import std.range: drop;
 
 
 /** 
@@ -20,7 +22,6 @@ final class TopDown : UserInterface
     this(App* app)
     {
         m_pApp = app;
-        m_input = new InputComponent(this);
         auto pSpriteSheet = SpriteSheetBuilder(app.renderer, "sprites/Actor1.png").width(12)
                                                                                   .height(8)
                                                                                   .spriteWidth(32)
@@ -34,6 +35,7 @@ final class TopDown : UserInterface
                                                .walkingLeft([12, 13, 14, 13])
                                                .build();
 
+        m_input = m_char.m_input = new InputComponent(&m_char);
         m_char.x = 50;
         m_char.y = 50;
     }
@@ -61,7 +63,7 @@ final class TopDown : UserInterface
 
     override void update(ulong timeElapsedMs)
     {
-        m_input.update(timeElapsedMs);
+        m_char.update(timeElapsedMs);
     }
 
     override void input()
@@ -208,49 +210,81 @@ enum State
 /** 
  * An updatable which handles input.
  */
-class InputComponent : Updatable
+class InputComponent: Updatable
 {
-    this(TopDown topDown)
+    this(Character* pChar)
     {
-        m_topDown = topDown;
+        m_pChar = pChar;
     }
 
+    /** 
+     * Transform input state into character state 
+     */
     override void update(ulong timeElapsedMs)
     {
-        enum VIEWPORT_SPEED = 1;
-        const distance = timeElapsedMs * VIEWPORT_SPEED;
+        // Get current state
+        State oldState = m_pChar.m_state;
 
-        if (m_directionsPressed[cast(size_t)Orientation.Top])
+        // If no direction is pressed, return to Standing state
+        if (!m_directionsPressed[].any)
         {
-            m_topDown.m_viewport.y = cast(int) (m_topDown.m_viewport.y + distance);
+            m_pChar.m_state = State.Standing;
+            m_pChar.hVelocity = m_pChar.vVelocity = 0;
+        }
+        else 
+        {
+            m_pChar.m_state = State.Walking;
+
+            int hVelocity, vVelocity;
+            if (m_directionsPressed[cast(size_t)Orientation.Top]) 
+            {
+                m_pChar.m_orientation = Orientation.Top;
+                vVelocity += -1;
+            }
+
+            if (m_directionsPressed[cast(size_t)Orientation.Right])
+            {
+                m_pChar.m_orientation = Orientation.Right;
+                hVelocity += 1;
+            }
+
+            if (m_directionsPressed[cast(size_t)Orientation.Bottom])
+            {
+                m_pChar.m_orientation = Orientation.Bottom;
+                vVelocity += 1;
+            }
+
+            if (m_directionsPressed[cast(size_t)Orientation.Left])
+            {
+                m_pChar.m_orientation = Orientation.Left;
+                hVelocity += -1;
+            }
+
+            m_pChar.vVelocity = vVelocity;
+            m_pChar.hVelocity = hVelocity;
         }
 
-        if (m_directionsPressed[cast(size_t)Orientation.Right])
+        // Update state duration
+        if (m_pChar.m_state == oldState)
         {
-            m_topDown.m_viewport.x = cast(int) (m_topDown.m_viewport.x - distance);
+            m_pChar.m_stateDurationMs += timeElapsedMs;
         }
-
-        if (m_directionsPressed[cast(size_t)Orientation.Bottom])
+        else 
         {
-            m_topDown.m_viewport.y = cast(int) (m_topDown.m_viewport.y - distance);
-        }
-
-        if (m_directionsPressed[cast(size_t)Orientation.Left])
-        {
-            m_topDown.m_viewport.x = cast(int) (m_topDown.m_viewport.x + distance);
+            infof("State changed to %s ", m_pChar.m_state);
+            m_pChar.m_stateDurationMs = 0;
         }
     }
 
     void setDirectionPressed(Orientation orientation)
-    {
-        size_t index = cast(size_t) orientation;
-        m_directionsPressed[index] = true;
+    {        
+        m_directionsPressed[cast(size_t)orientation] = true;
+
     }
 
     void setDirectionReleased(Orientation orientation)
     {
-        size_t index = cast(size_t) orientation;
-        m_directionsPressed[index] = false;
+        m_directionsPressed[cast(size_t)orientation] = false;
     }
 
     void setActionPressed()
@@ -264,7 +298,7 @@ class InputComponent : Updatable
     }
 
 private:
-    TopDown m_topDown;
+    Character* m_pChar;
     bool[4] m_directionsPressed;
     bool m_actionPressed;
 }
@@ -329,33 +363,55 @@ struct Character
     {
         // Determine the animation phase to draw
         Animation* anim;
+        SDL_Rect srcRect;
+
         final switch (m_state)
         {
         case State.Standing:
             anim = &m_standingAnimation[cast(int)m_orientation];
+            srcRect = anim.front;
             break;
 
         case State.Walking:
             anim = &m_walkingAnimations[cast(int)m_orientation];
+            while (m_stateDurationMs > m_walkingAnimationDurationMs)
+            {
+                anim.popFront();
+                m_stateDurationMs -= m_walkingAnimationDurationMs;
+            }
+            srcRect = anim.front;
             break;
         }
-
-        SDL_Rect srcRect = anim.front;
-
+        
         // Determine where to draw on the screen
         SDL_Rect dstRect = SDL_Rect(x + viewPort.x, y + viewPort.y, srcRect.w, srcRect.h);
-        
         SDL_RenderCopy(pRenderer, anim.texture, &srcRect, &dstRect);
     }
 
+    void update(ulong timeEllapsedMs)
+    {
+        m_input.update(timeEllapsedMs);
+
+        x += hVelocity;
+        y += vVelocity;
+    }
 
     // Animation data 
     Animation[4] m_walkingAnimations;
     Animation[4] m_standingAnimation;
+    ulong m_stateDurationMs;
+    ulong m_walkingAnimationDurationMs = 300;
     Orientation m_orientation;
     State m_state;
 
     // Position in map coordinates
     int x;
     int y;
+
+    // Velocity on axes
+    int hVelocity;
+    int vVelocity;
+
+    // Component that change animation state
+    InputComponent m_input;
 }

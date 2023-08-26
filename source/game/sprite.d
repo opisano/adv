@@ -55,7 +55,7 @@ private:
 
 
 /** 
- * Holds a Texture for 
+ * Holds a Texture for Sprite
  */
 struct SpriteSheet
 {
@@ -74,6 +74,9 @@ struct SpriteSheet
      */
     @disable this(ref SpriteSheet);
 
+    /** 
+     * Free resources 
+     */
     ~this()
     {
         if (m_pTexture)
@@ -81,16 +84,6 @@ struct SpriteSheet
             SDL_DestroyTexture(m_pTexture);
             m_pTexture = null;
         }
-    }
-
-    int pixelWidth() const 
-    {
-        return width * spriteWidth;
-    }
-
-    int pixelHeight() const 
-    {
-        return height * spriteHeight;
     }
 
     /** 
@@ -102,10 +95,10 @@ struct SpriteSheet
      * Returns: 
      *     The Rect of the sprite for the provided index
      */
-    SDL_Rect opIndex(size_t index) const pure nothrow
+    SDL_Rect opIndex(int index) const pure nothrow
     {
-        immutable int row = cast(int) (index / width);
-        immutable int col = cast(int) index % width;
+        immutable int row = index / width;
+        immutable int col = index % width;
         immutable int x = col * spriteWidth;
         immutable int y = row * spriteHeight;
 
