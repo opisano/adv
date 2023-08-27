@@ -29,12 +29,12 @@ final class TopDown : UserInterface
 
         m_char = createCharacter(pSpriteSheet, 0);
         m_input = m_char.m_input = new InputComponent(&m_char);
-        m_char.x = WINDOW_WIDTH / 2 - 16;
-        m_char.y = WINDOW_HEIGHT / 2 - 16;
+        m_char.m_position.x = WINDOW_WIDTH / 2 - 16;
+        m_char.m_position.y = WINDOW_HEIGHT / 2 - 16;
 
         m_pnj ~= createCharacter(pSpriteSheet, 5);
-        m_pnj[$-1].x = 100;
-        m_pnj[$-1].y = 50;
+        m_pnj[$-1].m_position.x = 100;
+        m_pnj[$-1].m_position.y = 50;
         m_pnj[$-1].m_orientation = Orientation.Bottom;
         m_pnj[$-1].m_input = new WalkingNPCComponent(&m_pnj[$-1]);
     }
@@ -105,8 +105,8 @@ final class TopDown : UserInterface
 private:
     void updateViewPort()
     {
-        m_viewport.x = m_char.x - (WINDOW_WIDTH / 2);
-        m_viewport.y = m_char.y - (WINDOW_HEIGHT / 2);
+        m_viewport.x = cast(int)m_char.m_position.x - (WINDOW_WIDTH / 2);
+        m_viewport.y = cast(int)m_char.m_position.y - (WINDOW_HEIGHT / 2);
     }
 
     void drawMap(scope SDL_Renderer* pRenderer)
@@ -135,12 +135,12 @@ private:
 
     void drawChar(scope SDL_Renderer* pRenderer)
     {
-        m_pnj[].sort!("a.y < b.y");
+        m_pnj[].sort!("a.m_position.y < b.m_position.y");
 
         size_t i;
         for (i = 0; i < m_pnj.length; ++i)
         {
-            if (m_pnj[i].y >= m_char.y)
+            if (m_pnj[i].m_position.y >= m_char.m_position.y)
             {
                 break;
             }
