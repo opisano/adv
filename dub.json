@@ -9,5 +9,6 @@
 	},
 	"description": "A minimal D application.",
 	"license": "proprietary",
-	"name": "adv"
+	"name": "adv",
+	"buildOptions-windows": ["debugInfoC"]
 }

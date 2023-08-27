@@ -16,9 +16,13 @@
 
 # DUB
 .dub
+dub.selections.json
 docs.json
 __dummy.html
 docs/
 
 # Code coverage
 *.lst
+
+# Visual Studio Code
+.vscode/
