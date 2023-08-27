@@ -1,9 +1,9 @@
 module game.startmenu;
 
-import app : App;
 import derelict.sdl2.sdl;
 import derelict.sdl2.ttf;
 
+import game.app : App;
 import game.basics;
 import game.topdown;
 import game.widgets.widget;

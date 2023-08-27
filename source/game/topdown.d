@@ -1,9 +1,9 @@
 module game.topdown;
 
-import app: App, WINDOW_WIDTH, WINDOW_HEIGHT;
 import automem;
 import derelict.sdl2.sdl;
 
+import game.app: App, WINDOW_WIDTH, WINDOW_HEIGHT;
 import game.basics;
 import game.character;
 import game.sprite;

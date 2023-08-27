@@ -1,9 +1,9 @@
 module game.character;
 
 
-import app: WINDOW_HEIGHT, WINDOW_WIDTH;
 import automem.ref_counted;
 import derelict.sdl2.sdl;
+import game.app: WINDOW_HEIGHT, WINDOW_WIDTH;
 import game.basics;
 import game.map;
 import game.sprite;
