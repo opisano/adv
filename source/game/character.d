@@ -57,16 +57,16 @@ class InputComponent: Updatable
                 velocity.y -= 1;
             }
 
-            if (m_directionsPressed[cast(size_t)Orientation.Right])
-            {
-                m_pChar.m_orientation = Orientation.Right;
-                velocity.x += 1;
-            }
-
             if (m_directionsPressed[cast(size_t)Orientation.Bottom])
             {
                 m_pChar.m_orientation = Orientation.Bottom;
                 velocity.y += 1;
+            }
+
+            if (m_directionsPressed[cast(size_t)Orientation.Right])
+            {
+                m_pChar.m_orientation = Orientation.Right;
+                velocity.x += 1;
             }
 
             if (m_directionsPressed[cast(size_t)Orientation.Left])
