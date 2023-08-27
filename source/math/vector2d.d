@@ -1,16 +1,14 @@
 module math.vector2d;
 
+import std.traits: isFloatingPoint;
+import std.algorithm.searching: canFind;
 import std.math;
 
 /** 
  * Templated 2D vector.
  */
-struct Vector2D (T = float)
+struct Vector2D (T = float) if (isFloatingPoint!T)
 {
-    static Vector2D!T ZERO() {
-        return Vector2D!T(0, 0);
-    }
-
     /// Returns the length (magnitude) of the vector.
     T length() const {
         return sqrt((x * x) + (y * y));
@@ -32,18 +30,14 @@ struct Vector2D (T = float)
         return this; 
     }
 
-    Vector2D opBinary(string op)(const T rhs) const 
-    if (op == "/") {
-        return Vector2D(x / rhs, y / rhs);
+    Vector2D opBinary(string op)(in T rhs) const
+    if (["*", "/"].canFind(op)) {
+        return Vector2D(mixin("x " ~ op ~ " rhs"),
+                        mixin("y " ~ op ~ " rhs"));
     }
 
-    Vector2D opBinary(string op)(const T rhs) const
-    if (op == "*") {
-        return Vector2D(x * rhs, y * rhs);
-    }
-
-    T x;
-    T y;
+    T x = 0;
+    T y = 0;
 }
 
 unittest

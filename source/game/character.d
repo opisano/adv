@@ -44,13 +44,13 @@ class InputComponent: Updatable
         if (!m_directionsPressed[].any)
         {
             m_pChar.m_state = State.Standing;
-            m_pChar.m_velocity = Vector2D!(float).ZERO;
+            m_pChar.m_velocity = Vector2D!(float).init;
         }
         else 
         {
             m_pChar.m_state = State.Walking;
 
-            auto velocity = Vector2D!(float).ZERO;
+            Vector2D!float velocity;
             if (m_directionsPressed[cast(size_t)Orientation.Top]) 
             {
                 m_pChar.m_orientation = Orientation.Top;
@@ -387,10 +387,10 @@ struct Character
     State m_state;
 
     // Position in map coordinates
-    auto m_position = Vector2D!(float).ZERO;
+    Vector2D!float m_position;
 
     // Velocity on axes
-    auto m_velocity = Vector2D!(float).ZERO;
+    Vector2D!float m_velocity;
 
     // Speed multiplier
     float m_speed = 1.0;
