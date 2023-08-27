@@ -1,8 +1,9 @@
 {
 	"authors": [
-		"Olivier Pisano"
+		"Olivier Pisano",
+		"Nathan Risbourg"
 	],
-	"copyright": "Copyright © 2023, Olivier Pisano",
+	"copyright": "Copyright © 2023, Olivier Pisano, Nathan Risbourg",
 	"dependencies": {
 		"derelict-sdl2": "~>2.1.4",
 		"automem": "~>0.6.9"
