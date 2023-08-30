@@ -10,7 +10,8 @@ import std.math;
 struct Vector2D (T = float) if (isFloatingPoint!T)
 {
     /// Returns the length (magnitude) of the vector.
-    T length() const {
+    T length() const 
+    {
         return sqrt((x * x) + (y * y));
     }
 
@@ -25,7 +26,8 @@ struct Vector2D (T = float) if (isFloatingPoint!T)
      *
      * Returns: The result of the vector scaled to unit length.
      */
-    Vector2D normalized() const {
+    Vector2D normalized() const 
+    {
         return this / length();
     }
 
@@ -37,6 +39,9 @@ struct Vector2D (T = float) if (isFloatingPoint!T)
         assert(vec.normalized.y == 10 / correctLength);
     }
 
+    /** 
+     * Overload of += and -= operators with another Vector2D value.
+     */
     ref Vector2D opOpAssign(string op)(Vector2D rhs)
             if (["+", "-"].canFind(op))
     {
@@ -58,8 +63,12 @@ struct Vector2D (T = float) if (isFloatingPoint!T)
         assert (vec.y == 8);
     }
 
+    /** 
+     * Overload of * and / operators with a scalar
+     */
     Vector2D opBinary(string op)(in T rhs) const
-    if (["*", "/"].canFind(op)) {
+            if (["*", "/"].canFind(op)) 
+    {
         return Vector2D(mixin("x " ~ op ~ " rhs"),
                         mixin("y " ~ op ~ " rhs"));
     }
@@ -67,9 +76,32 @@ struct Vector2D (T = float) if (isFloatingPoint!T)
     unittest 
     {
         auto vec = Vector2D!float (10, 10);
-        auto dividedVec = vec / 2.0;
+        auto dividedVec = vec / 2;
         assert(dividedVec.x == 5.0);
         assert(dividedVec.y == 5.0);
+    }
+
+    /** 
+     * Overload of + and - operators with another Vector2D value.
+     */
+    Vector2D opBinary(string op)(in Vector2D rhs) const 
+            if (["+", "-"].canFind(op))
+    {
+        Vector2D result;
+        result.x = mixin("x " ~ op ~ "rhs.x");
+        result.y = mixin("y " ~ op ~ "rhs.y");
+        return result;
+    }
+
+    unittest 
+    {
+        auto vec1 = Vector2D!float(3, 2);
+        auto vec2 = Vector2D!float(3, 8);
+        auto vec3 = vec1 + vec2;
+        auto vec4 = vec3 - Vector2D!float(1, 1);
+
+        assert (vec3 == Vector2D!float(6, 10));
+        assert (vec4 == Vector2D!float(5, 9));
     }
 
     T x = 0;
