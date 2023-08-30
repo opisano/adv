@@ -113,9 +113,23 @@ private:
     {
         foreach (i, ref layer; m_map.layers)
         {
-            if (layer.name != "collision")
+            version (Collisions)
             {
-                drawMapLayer(pRenderer, layer);
+                if (layer.name != "collision")
+                {
+                    drawMapLayer(pRenderer, layer);
+                }
+                else 
+                {
+                    drawMapCollisionLayer(pRenderer, layer);
+                }
+            }
+            else 
+            {
+                if (layer.name != "collision")
+                {
+                    drawMapLayer(pRenderer, layer);
+                }
             }
         }
     }
@@ -124,12 +138,28 @@ private:
     {
         foreach (dst, src; layer.data)
         {
-            SDL_Rect srcRect = m_map.tileSets[0][src-1];
+            SDL_Rect srcRect = m_map.tileSets[0][src];
             SDL_Rect dstRect = m_map[dst];
             dstRect.x -= m_viewport.x;
             dstRect.y -= m_viewport.y;
 
             SDL_RenderCopy(pRenderer, m_map.tileSets[0].pTexture, &srcRect, &dstRect);
+        }
+    }
+
+    version (Collisions)
+    {
+        void drawMapCollisionLayer(scope SDL_Renderer* pRenderer, scope ref Layer layer)
+        {
+            foreach (dst, src; layer.data)
+            {
+                SDL_Rect srcRect = m_map.tileSets[$-1][src];
+                SDL_Rect dstRect = m_map[dst];
+                dstRect.x -= m_viewport.x;
+                dstRect.y -= m_viewport.y;
+
+                SDL_RenderCopy(pRenderer, m_map.tileSets[$-1].pTexture, &srcRect, &dstRect);
+            }
         }
     }
 

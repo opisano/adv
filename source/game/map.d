@@ -72,29 +72,38 @@ struct Map
      * Returns the bounding box of the first tile on the left of a position 
      * which can collide
      */
-    SDL_Rect leftOf(int x, int y)
+    SDL_Rect bboxLeftOf(scope ref SDL_Rect charRect)
     {
         // grab the collision layer
         auto l = layers[].countUntil!(l => l.name == "collision");
 
         // convert x to tile column index
-        int col = x / tileWidth;
+        int col = charRect.x / tileWidth;
 
         // convert y to tile row index 
-        int row = y / tileHeight;
+        int topRow = charRect.y / tileHeight;
+        int bottomRow = (charRect.y + charRect.h) / tileHeight;
 
         while (col >= 0)
         {
-            size_t index = row * width + col;
-            if (layers[l].data[index] != 0)
+            size_t topIndex = topRow * width + col;
+            size_t bottomIndex = bottomRow * width + col;
+
+            if (layers[l].data[topIndex] != 0) 
             {
-                return this[index];
+                return this[topIndex];
             }
+
+            if (layers[l].data[bottomIndex] != 0)
+            {
+                return this[bottomIndex];
+            }
+
             col--;
         }
 
         // No collision found, return a rect with a negative X
-        size_t index = row * width;
+        size_t index = topRow * width;
         SDL_Rect result = this[index];
         result.x -= tileWidth;
         return result;
@@ -104,52 +113,68 @@ struct Map
      * Returns the bounding box of the first tile on the left of a position 
      * which can collide
      */
-    SDL_Rect rightOf(int x, int y)
+    SDL_Rect bboxRightOf(scope ref SDL_Rect charRect)
     {
         // grab the collision layer
         auto l = layers[].countUntil!(l => l.name == "collision");
 
         // convert x to tile column index
-        int col = x / tileWidth;
+        int col = charRect.x / tileWidth;
 
         // convert y to tile row index 
-        int row = y / tileHeight;
+        int topRow = charRect.y / tileHeight;
+        int bottomRow = (charRect.y + charRect.h) / tileHeight;
 
         while (++col < width)
         {
-            size_t index = row * width + col;
-            if (layers[l].data[index] != 0)
+            size_t topIndex = topRow * width + col;
+            size_t bottomIndex = bottomRow * width + col;
+
+            if (layers[l].data[topIndex] != 0)
             {
-                return this[index];
+                return this[topIndex];
+            }
+
+            if (layers[l].data[bottomIndex] != 0)
+            {
+                return this[bottomIndex];
             }
         }
 
         // No collision found, return a rect with outside the map
-        size_t index = row * width + (width -1);
+        size_t index = topRow * width + (width -1);
         SDL_Rect result = this[index];
         result.x += tileWidth;
         return result;
     }
 
-    SDL_Rect topOf(int x, int y)
+    SDL_Rect bboxTopOf(scope ref SDL_Rect charRect)
     {
         // grab the collision layer
-        auto l = layers[].countUntil!(l => l.name
-         == "collision");
+        auto l = layers[].countUntil!(l => l.name == "collision");
 
         // convert x to tile column index
-        int col = x / tileWidth;
+        int leftCol = charRect.x / tileWidth;
+        int rightCol = (charRect.x + charRect.w) / tileWidth;
 
         // convert y to tile row index 
-        int row = y / tileHeight;
+        int row = charRect.y / tileHeight;
 
         while (row >= 0)
         {
-            size_t index = row * width + col;
-            if (layers[l].data[index] != 0)
+            size_t leftIndex = row * width + leftCol;
+            size_t rightIndex = row * width + rightCol;
+
+            if (layers[l].data[leftIndex] != 0)
             {
-                return this[index];
+                return this[leftIndex];
             }
+
+            if (layers[l].data[rightIndex] != 0)
+            {
+                return this[rightIndex];
+            }
+
             row--;
         }
 
@@ -160,28 +185,36 @@ struct Map
         return result;
     }
 
-    SDL_Rect bottomOf(int x, int y)
+    SDL_Rect bboxBottomOf(scope ref SDL_Rect charRect)
     {
         // grab the collision layer
         auto l = layers[].countUntil!(l => l.name == "collision");
 
         // convert x to tile column index
-        int col = x / tileWidth;
+        int leftCol = charRect.x / tileWidth;
+        int rightCol = (charRect.x + charRect.w) / tileWidth;
 
         // convert y to tile row index 
-        int row = y / tileHeight;
+        int row = charRect.y / tileHeight;
 
         while (++row < height)
         {
-            size_t index = row * width + col;
-            if (layers[l].data[index] != 0)
+            size_t leftIndex = row * width + leftCol;
+            size_t rightIndex = row * width + rightCol;
+
+            if (layers[l].data[leftIndex] != 0)
             {
-                return this[index];
+                return this[leftIndex];
+            }
+
+            if (layers[l].data[rightIndex] != 0)
+            {
+                return this[rightIndex];
             }
         }
 
         // No collision found, return a rect with outside the map
-        size_t index = (row-1) * width + col;
+        size_t index = (row-1) * width + leftCol;
         SDL_Rect result = this[index];
         result.y += tileHeight;
         return result;
@@ -220,6 +253,7 @@ struct TileSet
      */ 
     SDL_Rect opIndex(size_t index) const pure nothrow
     {
+        index -= firstGid;
         immutable int row = cast(int) (index / columns);
         immutable int col = cast(int) (index % columns);
         immutable int x = col * tileWidth;

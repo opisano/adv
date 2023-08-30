@@ -175,6 +175,9 @@ private:
     long m_remainingTimeMs;
 }
 
+/** 
+ * A component that tests collision agains the map 
+ */
 class CollisionComponent : Updatable 
 {
     this(Character* pChar, Map* pMap)
@@ -185,11 +188,13 @@ class CollisionComponent : Updatable
 
     override void update(ulong elapsedTimeMs)
     {
+        // collision test depend on the direction the character is walking 
+
         if (m_pChar.m_velocity.x < 0)
         {
             testCollisionLeft();
         }
-        else if (m_pChar.m_velocity.y > 0)
+        else if (m_pChar.m_velocity.x > 0)
         {
             testCollisionRight();
         }
@@ -209,7 +214,8 @@ private:
     void testCollisionLeft()
     {
         auto charRect = m_pChar.bbox();
-        auto leftBbox = m_pMap.leftOf(charRect.x, charRect.y);
+        // get the bounding box of the first colliding tile left from this character
+        auto leftBbox = m_pMap.bboxLeftOf(charRect);
 
         if (collide(charRect, leftBbox))
         {
@@ -220,7 +226,8 @@ private:
     void testCollisionRight()
     {
         auto charRect = m_pChar.bbox();
-        auto rightBbox = m_pMap.rightOf(charRect.x, charRect.y);
+        // get the bounding box of the first colliding tile right from this character
+        auto rightBbox = m_pMap.bboxRightOf(charRect);
 
         if (collide(charRect, rightBbox))
         {
@@ -231,7 +238,8 @@ private:
     void testCollisionTop()
     {
         auto charRect = m_pChar.bbox();
-        auto rightBbox = m_pMap.topOf(charRect.x, charRect.y);
+        // get the bounding box of the first colliding tile top from this character
+        auto rightBbox = m_pMap.bboxTopOf(charRect);
 
         if (collide(charRect, rightBbox))
         {
@@ -242,7 +250,8 @@ private:
     void testCollisionBottom()
     {
         auto charRect = m_pChar.bbox();
-        auto rightBbox = m_pMap.bottomOf(charRect.x, charRect.y);
+        // get the bounding box of the first colliding tile bottom from this character
+        auto rightBbox = m_pMap.bboxBottomOf(charRect);
 
         if (collide(charRect, rightBbox))
         {
@@ -360,6 +369,15 @@ struct Character
             // Determine where to draw on the screen
             SDL_Rect dstRect = SDL_Rect(screenX, screenY, srcRect.w, srcRect.h);
             SDL_RenderCopy(pRenderer, anim.texture, &srcRect, &dstRect);
+
+            version (Collisions)
+            {
+                // For debug purpose, draw bbox 
+                auto rect = bbox();
+                rect.x -= viewPort.x;
+                rect.y -= viewPort.y;
+                SDL_RenderDrawRect(pRenderer, &rect);
+            }
         }
     }
 
@@ -375,7 +393,7 @@ struct Character
 
     SDL_Rect bbox() const 
     {
-        return SDL_Rect(cast(int)m_position.x, cast(int)m_position.y + 16, 32, 16);
+        return SDL_Rect(cast(int)m_position.x + 4, cast(int)m_position.y + 16, 24, 16);
     }
 
     // Animation data 
