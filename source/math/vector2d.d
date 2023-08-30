@@ -38,10 +38,10 @@ struct Vector2D (T = float) if (isFloatingPoint!T)
     }
 
     ref Vector2D opOpAssign(string op)(Vector2D rhs)
-            if (op == "+") 
+            if (["+", "-"].canFind(op))
     {
-        x += rhs.x;
-        y += rhs.y;
+        mixin ("x " ~ op ~ "= rhs.x;");
+        mixin ("y " ~ op ~ "= rhs.y;");
         return this; 
     }
 
@@ -52,6 +52,10 @@ struct Vector2D (T = float) if (isFloatingPoint!T)
 
         assert(vec.x == 10);
         assert(vec.y == 10);
+
+        vec -= Vector2D!float(2, 2);
+        assert (vec.x == 8);
+        assert (vec.y == 8);
     }
 
     Vector2D opBinary(string op)(in T rhs) const
