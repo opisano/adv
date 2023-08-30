@@ -14,6 +14,12 @@ struct Vector2D (T = float) if (isFloatingPoint!T)
         return sqrt((x * x) + (y * y));
     }
 
+    unittest 
+    {
+        auto vec = Vector2D!float(5.0f, 10.0f);
+        assert (vec.length == sqrt(125.0f));
+    }
+
     /** 
      * This function throws if the vector length is zero. 
      *
@@ -23,11 +29,29 @@ struct Vector2D (T = float) if (isFloatingPoint!T)
         return this / length();
     }
 
+    unittest 
+    {
+        auto vec = Vector2D!float(10, 10);
+        float correctLength = sqrt(200.0);
+        assert(vec.normalized.x == 10 / correctLength);
+        assert(vec.normalized.y == 10 / correctLength);
+    }
+
     ref Vector2D opOpAssign(string op)(Vector2D rhs)
-    if (op == "+") {
+            if (op == "+") 
+    {
         x += rhs.x;
         y += rhs.y;
         return this; 
+    }
+
+    unittest 
+    {
+        auto vec = Vector2D!float(5, 5);
+        vec += Vector2D!float(5, 5);
+
+        assert(vec.x == 10);
+        assert(vec.y == 10);
     }
 
     Vector2D opBinary(string op)(in T rhs) const
@@ -36,33 +60,16 @@ struct Vector2D (T = float) if (isFloatingPoint!T)
                         mixin("y " ~ op ~ " rhs"));
     }
 
+    unittest 
+    {
+        auto vec = Vector2D!float (10, 10);
+        auto dividedVec = vec / 2.0;
+        assert(dividedVec.x == 5.0);
+        assert(dividedVec.y == 5.0);
+    }
+
     T x = 0;
     T y = 0;
 }
 
-unittest
-{
-    import std.exception;
-
-    auto vec = Vector2D!float(5, 5);
-
-    assert(vec.x == 5);
-    assert(vec.y == 5);
-
-    vec += Vector2D!float(5, 5);
-
-    assert(vec.x == 10);
-    assert(vec.y == 10);
-
-    float length = vec.length;
-    float correctLength = sqrt(200.0);
-
-    assert(length == correctLength);
-    assert(vec.normalized.x == 10 / correctLength);
-    assert(vec.normalized.y == 10 / correctLength);
-
-    auto dividedVec = vec / 2.0;
-
-    assert(dividedVec.x == 5.0);
-    assert(dividedVec.y == 5.0);
-}
+alias Vec2f = Vector2D!float;
