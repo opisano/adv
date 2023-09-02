@@ -1,6 +1,6 @@
 module game.basics;
 
-import derelict.sdl2.sdl;
+import bindbc.sdl;
 
 /** 
  * Direction a character is facing. 

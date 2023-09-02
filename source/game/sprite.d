@@ -1,10 +1,7 @@
 module game.sprite;
 
 import automem.ref_counted;
-
-import derelict.sdl2.sdl;
-import derelict.sdl2.image;
-
+import bindbc.sdl;
 import std.format;
 import std.range;
 import std.string;

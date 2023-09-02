@@ -2,9 +2,8 @@ module game.map;
 
 import automem.ref_counted;
 import automem.vector;
+import bindbc.sdl;
 import core.exception;
-import derelict.sdl2.sdl;
-import derelict.sdl2.image;
 import std.algorithm.searching;
 import std.exception;
 import std.format;

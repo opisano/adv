@@ -1,8 +1,8 @@
 module game.app;
 
-import derelict.sdl2.sdl;
-import derelict.sdl2.ttf;
-import derelict.sdl2.image;
+import bindbc.loader.sharedlib;
+import bindbc.sdl;
+import bindbc.sdl.codegen;
 import game.basics;
 import game.startmenu;
 import std.algorithm;
@@ -118,10 +118,21 @@ private:
      * SDL-related initialization
      */
     void initializeSDL()
-    {
-        DerelictSDL2.load;
-        DerelictSDL2ttf.load;
-        DerelictSDL2Image.load;
+    {        
+        if (loadSDL() != sdlSupport)
+        {
+            throw new Exception("Could not load SDL");
+        }
+
+        if (loadSDLImage() != sdlImageSupport)
+        {
+            throw new Exception("Could not load SDL Image");
+        }
+
+        if (loadSDLTTF() != sdlTTFSupport)
+        {
+            throw new Exception("Could not load SDL TTF");
+        }
 
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
         {

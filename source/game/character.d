@@ -2,7 +2,7 @@ module game.character;
 
 
 import automem.ref_counted;
-import derelict.sdl2.sdl;
+import bindbc.sdl;
 import game.app: WINDOW_HEIGHT, WINDOW_WIDTH;
 import game.basics;
 import game.map;

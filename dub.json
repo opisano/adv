@@ -3,13 +3,18 @@
 		"Olivier Pisano",
 		"Nathan Risbourg"
 	],
+	"buildOptions-windows": [
+		"debugInfoC"
+	],
 	"copyright": "Copyright © 2023, Olivier Pisano, Nathan Risbourg",
 	"dependencies": {
-		"derelict-sdl2": "~>2.1.4",
-		"automem": "~>0.6.9"
+		"automem": "~>0.6.9",
+		"bindbc-sdl": "~>1.4.2"
 	},
+	"versions": [
+		"SDL_2_26", "SDL_TTF_2018", "SDL_Image_2_6"
+	],
 	"description": "A minimal D application.",
 	"license": "proprietary",
-	"name": "adv",
-	"buildOptions-windows": ["debugInfoC"]
+	"name": "adv"
 }

@@ -1,8 +1,6 @@
 module game.widgets.widget;
 
-import derelict.sdl2.sdl;
-import derelict.sdl2.ttf;
-
+import bindbc.sdl;
 import std.exception;
 import std.string;
 

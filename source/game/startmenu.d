@@ -1,7 +1,6 @@
 module game.startmenu;
 
-import derelict.sdl2.sdl;
-import derelict.sdl2.ttf;
+import bindbc.sdl;
 
 import game.app : App;
 import game.basics;

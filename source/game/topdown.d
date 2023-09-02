@@ -1,7 +1,7 @@
 module game.topdown;
 
 import automem;
-import derelict.sdl2.sdl;
+import bindbc.sdl;
 
 import game.app: App, WINDOW_WIDTH, WINDOW_HEIGHT;
 import game.basics;
