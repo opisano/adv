@@ -156,20 +156,23 @@ private:
 
     void changeToStanding()
     {
+        int[7] durations = [250, 300, 500, 600, 750, 900, 1000];
         m_directionsPressed[] = false;
 
         // stay standing for a random duration
-        m_remainingTimeMs = [250, 300, 500, 600, 750, 900, 1000].choice;
+        m_remainingTimeMs = durations[].choice;
     }
 
     void changeToWalking()
     {
+        int[4] durations = [200, 300, 400, 500];
+
         Orientation orient = [Orientation.Top, Orientation.Right, Orientation.Bottom, Orientation.Left].choice;
         m_directionsPressed[] = false;
         m_directionsPressed[cast(int)orient] = true;
 
         // stay walking for a random duration 
-        m_remainingTimeMs = [200, 300, 400, 500].choice;
+        m_remainingTimeMs = durations[].choice;
     }
 
     // Remaining time in current state
@@ -377,7 +380,7 @@ struct Character
         }
     }
 
-    SDL_Rect bbox() const 
+    SDL_Rect bbox() const pure
     {
         return SDL_Rect(cast(int)m_position.x + 4, cast(int)m_position.y + 16, 24, 16);
     }
@@ -385,7 +388,7 @@ struct Character
     /** 
      * Returns the point at the center of character bounding box.
      */
-    Vec2f center() const 
+    Vec2f center() const pure
     {
         auto rect = bbox();
         return Vec2f(rect.x + rect.w / 2, 
@@ -395,12 +398,29 @@ struct Character
     /** 
      * Returns the distance to another Character
      */
-    float distance(scope ref const Character other) const 
+    float distance(scope ref const Character other) const pure
     {
         Vec2f a = center();
         Vec2f b = other.center();
         Vec2f c = b - a;
         return c.length;
+    }
+
+    /** 
+     * Returns the horizontal distance to another character 
+     */
+    float hdistance(scope ref const Character other) const pure
+    {
+        Vec2f a = center();
+        Vec2f b = other.center();
+        return b.x - a.x;
+    }
+
+    float vdistance(scope ref const Character other) const pure
+    {
+        Vec2f a = center();
+        Vec2f b = other.center();
+        return b.y - a.y;
     }
 
     /** 
@@ -425,8 +445,39 @@ struct Character
         }
     }
 
-    string interact()
+    void setFacing(ref const(Character) other) 
     {
+        float hdist = hdistance(other);
+        float vdist = vdistance(other);
+
+        if (hdist > 0) // other is at our right
+        {
+            if (vdist > 0) // and other is at our bottom
+            {
+                m_orientation = hdist > vdist ? Orientation.Right : Orientation.Bottom;
+            }
+            else 
+            {
+                m_orientation = hdist > vdist ? Orientation.Right : Orientation.Top;
+            }
+        }
+        else // other is at our left
+        {
+            if (vdist < 0) // and other is at our top
+            {
+                m_orientation = vdist < hdist ? Orientation.Top: Orientation.Left;
+            }
+            else 
+            {
+                m_orientation = vdist < hdist ? Orientation.Bottom : Orientation.Left;
+            }
+        }
+    }
+
+    string interact(const(Character) c)
+    {
+        setFacing(c);
+
         return "Bonjour, ceci est un texte qui doit etre decoupe en lignes.\nEt une troisieme.\n" 
                ~ "Si ce texte est trop long, il doit etre decoupe.";
     }
