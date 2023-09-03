@@ -83,6 +83,7 @@ final class TopDown : UserInterface
         // If user pressed the action button
         if (m_input.isAction)
         {
+            // Search for a NPC that is near the hero, in the direction he's facing
             auto candidates = m_pnj[].filter!(chr => m_char.distance(chr) < 32 && m_char.facing(chr));
             if (!candidates.empty)
             {
@@ -150,6 +151,7 @@ final class TopDown : UserInterface
         }
         else 
         {
+            // Get current joystick axes state
             short axis;
             axis = SDL_GameControllerGetAxis(m_pApp.controller, SDL_CONTROLLER_AXIS_LEFTY);
             m_input.setDirection(Orientation.Top, axis < -5_000);
@@ -210,8 +212,13 @@ private:
 
     void updateViewPort()
     {
-        m_viewport.x = cast(int)m_char.m_position.x - (WINDOW_WIDTH / 2);
-        m_viewport.y = cast(int)m_char.m_position.y - (WINDOW_HEIGHT / 2);
+        m_viewport.x = clamp(cast(int)m_char.center.x - (WINDOW_WIDTH / 2),
+                             0, 
+                             m_map.pixelWidth - WINDOW_WIDTH);
+
+        m_viewport.y = clamp(cast(int)m_char.center.y - (WINDOW_HEIGHT / 2),
+                             0,
+                             m_map.pixelHeight - WINDOW_HEIGHT);
     }
 
     void drawMap(scope SDL_Renderer* pRenderer)
