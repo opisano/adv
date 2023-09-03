@@ -83,7 +83,7 @@ final class TopDown : UserInterface
             auto candidates = m_pnj[].filter!(chr => m_char.distance(chr) < 32 && m_char.facing(chr));
             if (!candidates.empty)
             {
-                string text = candidates.front.interact();
+                string text = candidates.front.interact(m_char);
                 auto dlg = new Dialog(m_pApp);
                 dlg.setText(text);
                 m_pApp.pushInterface(dlg);
@@ -91,7 +91,7 @@ final class TopDown : UserInterface
             }
         }
     }
-
+ 
     override void input()
     {
         SDL_Event event;
@@ -105,6 +105,10 @@ final class TopDown : UserInterface
 
             case SDL_KEYDOWN:
                 doKeyDown(event.key);
+                break;
+            
+            case SDL_KEYUP:
+                doKeyUp(event.key);
                 break;
             
             default: 
@@ -133,6 +137,19 @@ private:
             break;
 
         default:
+            break;
+        }
+    }
+
+    void doKeyUp(scope ref SDL_KeyboardEvent keyEvent)
+    {
+        switch (keyEvent.keysym.scancode)
+        {
+        case SDL_SCANCODE_SPACE:
+            m_input.setAction(false);
+            break;
+        
+        default: 
             break;
         }
     }

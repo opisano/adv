@@ -474,7 +474,7 @@ struct Character
         }
     }
 
-    string interact(const(Character) c)
+    string interact(ref const(Character) c)
     {
         setFacing(c);
 
