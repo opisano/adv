@@ -11,6 +11,7 @@ import math.vector2d;
 import std.algorithm.searching: any;
 import std.experimental.logger;
 import std.random;
+import std.stdio;
 
 /** 
  * A character State
@@ -410,18 +411,18 @@ final class Character : Entity
      *     other: The other character to check for orientation. 
      * 
      */
-    bool facing(scope const(Entity) other) pure const 
+    bool facing(scope const(Entity) other) const 
     {
         final switch (m_orientation)
         {
         case Orientation.Top:
-            return m_position.y > other.m_position.y;
+            return center.y > other.center.y;
         case Orientation.Right:
-            return m_position.x < other.m_position.x;
+            return center.x < other.center.x;
         case Orientation.Bottom:
-            return m_position.y < other.m_position.y;
+            return center.y < other.center.y;
         case Orientation.Left:
-            return m_position.x > other.m_position.x;
+            return center.x > other.center.x;
         }
     }
 

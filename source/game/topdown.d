@@ -12,6 +12,7 @@ import game.map;
 
 import std.algorithm;
 import std.experimental.logger;
+import std.math;
 import std.stdio;
 
 
@@ -84,7 +85,7 @@ final class TopDown : UserInterface
         if (m_input.isAction)
         {
             // Search for a NPC that is near the hero, in the direction he's facing
-            auto candidates = m_pnj[].filter!(chr => m_char.distance(chr) < 32 && m_char.facing(chr));
+            auto candidates = m_pnj[].filter!(chr => abs(m_char.distance(chr)) < 32 && m_char.facing(chr));
             if (!candidates.empty)
             {
                 string text = candidates.front.interact(m_char);

@@ -99,9 +99,11 @@ struct App
     /** 
      * Remove the UserInterface at the top of the stack.
      */
-    void popInterface()
+    bool popInterface()
     {
         m_uis.popBack();
+        bool ret = !m_uis.empty;
+        return ret;
     }
 
     /** 

@@ -120,6 +120,12 @@ class Dialog : UserInterface
         {
             switch (event.type)
             {
+            case SDL_QUIT:
+                while (m_pApp.popInterface()) 
+                {
+                }
+                break;
+
             case SDL_KEYDOWN:
                 doKeyDown(event.key);
                 break;
@@ -187,10 +193,20 @@ private:
 
     void doButtonDown(scope ref SDL_JoyButtonEvent event)
     {
-        if (event.button == 0)
+        switch (event.button)
         {
+        case 0:
             doAction();
+            break;
+
+        case 1:
+            m_pApp.popInterface();
+            break;
+        
+        default:
+            break;
         }
+
     }
 
     void doButtonUp(scope ref SDL_JoyButtonEvent event)
