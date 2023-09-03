@@ -27,9 +27,9 @@ enum State
  */
 class InputComponent: Updatable
 {
-    this(Character* pChar)
+    this(Character chr)
     {
-        m_pChar = pChar;
+        m_char = chr;
     }
 
     /** 
@@ -38,55 +38,55 @@ class InputComponent: Updatable
     override void update(ulong timeElapsedMs)
     {
         // Get current state
-        State oldState = m_pChar.m_state;
+        State oldState = m_char.m_state;
 
         // If no direction is pressed, return to Standing state
         if (!m_directionsPressed[].any)
         {
-            m_pChar.m_state = State.Standing;
-            m_pChar.m_velocity = Vector2D!(float).init;
+            m_char.m_state = State.Standing;
+            m_char.m_velocity = Vector2D!(float).init;
         }
         else 
         {
-            m_pChar.m_state = State.Walking;
+            m_char.m_state = State.Walking;
 
             Vector2D!float velocity;
             if (m_directionsPressed[cast(size_t)Orientation.Top]) 
             {
-                m_pChar.m_orientation = Orientation.Top;
+                m_char.m_orientation = Orientation.Top;
                 velocity.y -= 1;
             }
 
             if (m_directionsPressed[cast(size_t)Orientation.Bottom])
             {
-                m_pChar.m_orientation = Orientation.Bottom;
+                m_char.m_orientation = Orientation.Bottom;
                 velocity.y += 1;
             }
 
             if (m_directionsPressed[cast(size_t)Orientation.Right])
             {
-                m_pChar.m_orientation = Orientation.Right;
+                m_char.m_orientation = Orientation.Right;
                 velocity.x += 1;
             }
 
             if (m_directionsPressed[cast(size_t)Orientation.Left])
             {
-                m_pChar.m_orientation = Orientation.Left;
+                m_char.m_orientation = Orientation.Left;
                 velocity.x -= 1;
             }
 
-            m_pChar.m_velocity = velocity;
+            m_char.m_velocity = velocity;
         }
 
         // Update state duration
-        if (m_pChar.m_state == oldState)
+        if (m_char.m_state == oldState)
         {
-            m_pChar.m_stateDurationMs += timeElapsedMs;
+            m_char.m_stateDurationMs += timeElapsedMs;
         }
         else 
         {
-            tracef("State changed to %s ", m_pChar.m_state);
-            m_pChar.m_stateDurationMs = 0;
+            tracef("State changed to %s ", m_char.m_state);
+            m_char.m_stateDurationMs = 0;
         }
     }
 
@@ -113,7 +113,7 @@ class InputComponent: Updatable
     
 
 protected:
-    Character* m_pChar;
+    Character m_char;
     bool[4] m_directionsPressed;
     bool m_actionPressed;
 }
@@ -125,9 +125,9 @@ protected:
  */
 final class WalkingNPCComponent : InputComponent
 {
-    this(Character* pChar)
+    this(Character chr)
     {
-        super(pChar);
+        super(chr);
     }
 
     override void update(ulong timeElapsedMs)
@@ -184,9 +184,9 @@ private:
  */
 class MapCollisionComponent : Updatable 
 {
-    this(Character* pChar, Map* pMap)
+    this(Character chr, Map* pMap)
     {
-        m_pChar = pChar;
+        m_char = chr;
         m_pMap = pMap;
     }
 
@@ -194,20 +194,20 @@ class MapCollisionComponent : Updatable
     {
         // collision test depend on the direction the character is walking 
 
-        if (m_pChar.m_velocity.x < 0)
+        if (m_char.m_velocity.x < 0)
         {
             testCollisionLeft();
         }
-        else if (m_pChar.m_velocity.x > 0)
+        else if (m_char.m_velocity.x > 0)
         {
             testCollisionRight();
         }
 
-        if (m_pChar.m_velocity.y < 0)
+        if (m_char.m_velocity.y < 0)
         {
             testCollisionTop();
         }
-        else if (m_pChar.m_velocity.y > 0)
+        else if (m_char.m_velocity.y > 0)
         {
             testCollisionBottom();
         }
@@ -217,53 +217,53 @@ private:
 
     void testCollisionLeft()
     {
-        auto charRect = m_pChar.bbox();
+        auto charRect = m_char.bbox();
         // get the bounding box of the first colliding tile left from this character
         auto leftBbox = m_pMap.bboxLeftOf(charRect);
 
         if (collide(charRect, leftBbox))
         {
-            m_pChar.m_velocity.x = 0;
+            m_char.m_velocity.x = 0;
         }
     }
 
     void testCollisionRight()
     {
-        auto charRect = m_pChar.bbox();
+        auto charRect = m_char.bbox();
         // get the bounding box of the first colliding tile right from this character
         auto rightBbox = m_pMap.bboxRightOf(charRect);
 
         if (collide(charRect, rightBbox))
         {
-            m_pChar.m_velocity.x = 0;
+            m_char.m_velocity.x = 0;
         }
     }
 
     void testCollisionTop()
     {
-        auto charRect = m_pChar.bbox();
+        auto charRect = m_char.bbox();
         // get the bounding box of the first colliding tile top from this character
         auto rightBbox = m_pMap.bboxTopOf(charRect);
 
         if (collide(charRect, rightBbox))
         {
-            m_pChar.m_velocity.y = 0;
+            m_char.m_velocity.y = 0;
         }
     }
 
     void testCollisionBottom()
     {
-        auto charRect = m_pChar.bbox();
+        auto charRect = m_char.bbox();
         // get the bounding box of the first colliding tile bottom from this character
         auto rightBbox = m_pMap.bboxBottomOf(charRect);
 
         if (collide(charRect, rightBbox))
         {
-            m_pChar.m_velocity.y = 0;
+            m_char.m_velocity.y = 0;
         }
     }
 
-    Character* m_pChar;
+    Character m_char;
     Map* m_pMap;
 }
 
@@ -273,6 +273,7 @@ struct CharacterBuilder
     this(RC!SpriteSheet pSpriteSheet)
     {
         m_pSpriteSheet = pSpriteSheet;
+        m_char = new Character();
     }
 
     ref CharacterBuilder standing(int top, int right, int bottom, int left) return 
@@ -322,9 +323,9 @@ private:
 /** 
  * Holds information about a character in a top down view.
  */
-struct Character 
+final class Character : Entity
 {
-    void draw(scope SDL_Renderer* pRenderer, SDL_Point viewPort)
+    override void draw(scope SDL_Renderer* pRenderer, SDL_Point viewPort)
     {
         // Determine the animation phase to draw
         Animation* anim;
@@ -370,7 +371,7 @@ struct Character
         }
     }
 
-    void update(ulong timeElapsedMs)
+    override void update(ulong timeElapsedMs)
     {
         m_input.update(timeElapsedMs);
         m_collision.update(timeElapsedMs);
@@ -380,43 +381,22 @@ struct Character
         }
     }
 
-    SDL_Rect bbox() const pure
+    override SDL_Rect bbox() const pure
     {
         return SDL_Rect(cast(int)m_position.x + 4, cast(int)m_position.y + 16, 24, 16);
     }
 
     /** 
-     * Returns the point at the center of character bounding box.
-     */
-    Vec2f center() const pure
-    {
-        auto rect = bbox();
-        return Vec2f(rect.x + rect.w / 2, 
-                     rect.y + rect.h / 2); 
-    }
-
-    /** 
-     * Returns the distance to another Character
-     */
-    float distance(scope ref const Character other) const pure
-    {
-        Vec2f a = center();
-        Vec2f b = other.center();
-        Vec2f c = b - a;
-        return c.length;
-    }
-
-    /** 
      * Returns the horizontal distance to another character 
      */
-    float hdistance(scope ref const Character other) const pure
+    float hdistance(scope const(Entity) other) const pure
     {
         Vec2f a = center();
         Vec2f b = other.center();
         return b.x - a.x;
     }
 
-    float vdistance(scope ref const Character other) const pure
+    float vdistance(scope const(Entity) other) const pure
     {
         Vec2f a = center();
         Vec2f b = other.center();
@@ -430,7 +410,7 @@ struct Character
      *     other: The other character to check for orientation. 
      * 
      */
-    bool facing(ref const(Character) other) pure const 
+    bool facing(scope const(Entity) other) pure const 
     {
         final switch (m_orientation)
         {
@@ -445,7 +425,7 @@ struct Character
         }
     }
 
-    void setFacing(ref const(Character) other) 
+    void setFacing(scope const(Entity) other) 
     {
         float hdist = hdistance(other);
         float vdist = vdistance(other);
@@ -474,7 +454,7 @@ struct Character
         }
     }
 
-    string interact(ref const(Character) c)
+    override string interact(scope const(Entity) c)
     {
         setFacing(c);
 

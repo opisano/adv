@@ -1,6 +1,7 @@
 module game.basics;
 
 import bindbc.sdl;
+import math.vector2d;
 
 /** 
  * Direction a character is facing. 
@@ -112,3 +113,38 @@ bool collide(scope ref const(SDL_Rect) rect1, scope ref const(SDL_Rect) rect2) p
 }
 
 
+abstract class Entity : Updatable
+{
+    abstract void draw(scope SDL_Renderer* pRenderer, SDL_Point viewPort);
+
+    /** 
+     * Returns this entity bounding box.
+     */
+    abstract SDL_Rect bbox() const pure;
+
+    abstract string interact(scope const(Entity) );
+
+    /** 
+     * Returns the point at the center of character bounding box.
+     */
+    final Vec2f center() const pure
+    {
+        auto rect = bbox();
+        return Vec2f(rect.x + rect.w / 2, 
+                     rect.y + rect.h / 2); 
+    }
+
+    /** 
+     * Returns the distance to another Character
+     */
+    final float distance(scope const Entity other) const pure
+    {
+        Vec2f a = center();
+        Vec2f b = other.center();
+        Vec2f c = b - a;
+        return c.length;
+    }
+
+protected:
+    SDL_Point m_position;
+}

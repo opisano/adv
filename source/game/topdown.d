@@ -30,7 +30,7 @@ final class TopDown : UserInterface
                                                                                   .build();
 
         m_char = createCharacter(pSpriteSheet, 0);
-        m_input = m_char.m_input = new InputComponent(&m_char);
+        m_input = m_char.m_input = new InputComponent(m_char);
         m_char.m_position.x = WINDOW_WIDTH / 2 - 16;
         m_char.m_position.y = WINDOW_HEIGHT / 2 - 16;
 
@@ -38,7 +38,7 @@ final class TopDown : UserInterface
         m_pnj[$-1].m_position.x = 100;
         m_pnj[$-1].m_position.y = 50;
         m_pnj[$-1].m_orientation = Orientation.Bottom;
-        m_pnj[$-1].m_input = new WalkingNPCComponent(&m_pnj[$-1]);
+        m_pnj[$-1].m_input = new WalkingNPCComponent(m_pnj[$-1]);
     }
 
     /** 
@@ -51,10 +51,10 @@ final class TopDown : UserInterface
     void loadMap(SDL_Renderer* pRenderer, string filename)
     {
         m_map = game.map.loadMap(pRenderer, filename);
-        m_char.m_collision = new MapCollisionComponent(&m_char, &m_map);
+        m_char.m_collision = new MapCollisionComponent(m_char, &m_map);
         foreach (ref pnj; m_pnj)
         {
-            pnj.m_collision = new MapCollisionComponent(&pnj, &m_map);
+            pnj.m_collision = new MapCollisionComponent(pnj, &m_map);
         }
     }
 
