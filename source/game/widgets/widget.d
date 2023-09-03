@@ -26,7 +26,7 @@ abstract class Widget
      */
     abstract void draw(scope SDL_Renderer* pRenderer, bool active);
 
-    abstract void onKeyDown(scope ref SDL_KeyboardEvent event);
+    abstract void onKeyDown(scope ref const SDL_KeyboardEvent event);
 
 protected:
 
@@ -82,7 +82,7 @@ final class ActionWidget : Widget
         drawText(pRenderer, m_label, m_x, m_y, color);
     }
 
-    override void onKeyDown(scope ref SDL_KeyboardEvent event)
+    override void onKeyDown(scope ref const SDL_KeyboardEvent event)
     {
         if (event.keysym.sym == SDLK_RETURN)
         {
@@ -146,7 +146,7 @@ final class ChoiceWidget : Widget
         drawText(pRenderer, buffer.ptr, m_x, m_y, color);
     }
 
-    override void onKeyDown(scope ref SDL_KeyboardEvent event)
+    override void onKeyDown(scope ref const SDL_KeyboardEvent event)
     {
         switch (event.keysym.sym)
         {

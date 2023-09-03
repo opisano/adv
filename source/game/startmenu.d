@@ -60,6 +60,10 @@ final class StartMenu : UserInterface
             case SDL_KEYDOWN:
                 doKeyDown(event.key);
                 break;
+
+            case SDL_JOYBUTTONDOWN:
+                doButtonDown(event.jbutton);
+                break;
             
             default:
                 break;
@@ -100,7 +104,7 @@ private:
                            .build();
     }
 
-    void doKeyDown(scope ref SDL_KeyboardEvent event)
+    void doKeyDown(scope ref const SDL_KeyboardEvent event)
     {
         if (event.repeat != 0)
         {
@@ -120,6 +124,17 @@ private:
         default:
             m_widgets[m_activeIndex].onKeyDown(event);
             break;
+        }
+    }
+
+    void doButtonDown(scope ref const SDL_JoyButtonEvent event)
+    {
+        if (event.button == 0)
+        {
+            // Translate into keyboard event
+            SDL_KeyboardEvent kbEvent;
+            kbEvent.keysym.sym = SDLK_RETURN;
+            m_widgets[m_activeIndex].onKeyDown(kbEvent);
         }
     }
 

@@ -10,7 +10,6 @@ import std.exception;
 import std.experimental.logger;
 import std.format;
 import std.range;
-import std.stdio;
 import std.uni;
 import std.utf;
 
@@ -128,6 +127,14 @@ class Dialog : UserInterface
             case SDL_KEYUP:
                 doKeyUp(event.key);
                 break;
+
+            case SDL_JOYBUTTONDOWN:
+                doButtonDown(event.jbutton);
+                break;
+
+            case SDL_JOYBUTTONUP:
+                doButtonUp(event.jbutton);
+                break;
             
             default:
                 break;
@@ -176,6 +183,22 @@ private:
         default:
             break;
         }   
+    }
+
+    void doButtonDown(scope ref SDL_JoyButtonEvent event)
+    {
+        if (event.button == 0)
+        {
+            doAction();
+        }
+    }
+
+    void doButtonUp(scope ref SDL_JoyButtonEvent event)
+    {
+        if (event.button == 0)
+        {
+            m_textPeriod = TEXT_SPEED;
+        }
     }
 
     void loadFont()

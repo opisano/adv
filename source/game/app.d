@@ -6,7 +6,9 @@ import bindbc.sdl.codegen;
 import game.basics;
 import game.startmenu;
 import std.algorithm;
+import std.conv;
 import std.file;
+import std.experimental.logger;
 import std.format;
 import std.range;
 import std.stdio;
@@ -40,6 +42,7 @@ struct App
     this(string[] args)
     {
         initializeSDL;
+        initJoystick;
         createWindow;
         createStartMenu;
     }
@@ -59,6 +62,11 @@ struct App
         {
             SDL_DestroyWindow(m_pWindow);
             m_pWindow = null;
+        }
+
+        if (m_pController != null)
+        {
+            SDL_GameControllerClose(m_pController);
         }
     }
 
@@ -112,13 +120,23 @@ struct App
         return m_pRenderer;
     }
 
+    /** 
+     * Access the joystick component.
+     */
+    SDL_GameController* controller()
+    {
+        return m_pController;
+    }
+
 private:
 
 	/** 
      * SDL-related initialization
      */
     void initializeSDL()
-    {        
+    {
+        m_logger = new FileLogger(stdout);
+
         if (loadSDL() != sdlSupport)
         {
             throw new Exception("Could not load SDL");
@@ -134,7 +152,7 @@ private:
             throw new Exception("Could not load SDL TTF");
         }
 
-        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0)
         {
             throw new Exception("Could not initialize SDL: %s".format(SDL_GetError));
         }
@@ -147,6 +165,26 @@ private:
         if (IMG_Init(IMG_INIT_PNG) < 0)
         {
             throw new Exception("Could not initialize SDL_IMG: %s".format(IMG_GetError));
+        }
+    }
+
+    void initJoystick()
+    {
+        int n = SDL_NumJoysticks();
+        m_logger.infof("%s joysticks detected", n);
+
+        foreach (i; 0 .. n)
+        {
+            auto pJs = SDL_GameControllerOpen(i);
+
+            if (pJs != null)
+            {
+                m_logger.infof("Found joystick [name: %s]", 
+                               fromStringz(SDL_GameControllerNameForIndex(i)));
+
+                m_pController = pJs;
+                break;
+            }
         }
     }
 
@@ -225,8 +263,12 @@ private:
 	SDL_Renderer* m_pRenderer;
     /// The Application window
 	SDL_Window* m_pWindow;
+    /// The joystick (if any)
+    SDL_GameController* m_pController;
     /// Main loop condition, exit application when set to false
 	bool m_active;
+    /// Used for logging
+    Logger m_logger;
 }
 
 

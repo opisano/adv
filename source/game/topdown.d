@@ -39,6 +39,9 @@ final class TopDown : UserInterface
         m_pnj[$-1].m_position.y = 50;
         m_pnj[$-1].m_orientation = Orientation.Bottom;
         m_pnj[$-1].m_input = new WalkingNPCComponent(m_pnj[$-1]);
+
+        m_logger = new FileLogger(stdout);
+        m_logger.logLevel = LogLevel.all;
     }
 
     /** 
@@ -95,6 +98,7 @@ final class TopDown : UserInterface
     override void input()
     {
         SDL_Event event;
+
         while (SDL_PollEvent(&event))
         {
             switch (event.type)
@@ -104,11 +108,27 @@ final class TopDown : UserInterface
                 break;
 
             case SDL_KEYDOWN:
+                m_useJoystick = false;
                 doKeyDown(event.key);
                 break;
             
             case SDL_KEYUP:
+                m_useJoystick = false;
                 doKeyUp(event.key);
+                break;
+
+            case SDL_JOYBUTTONDOWN:
+                doButtonDown(event.jbutton);
+                m_useJoystick = true;
+                break;
+
+            case SDL_JOYBUTTONUP:
+                doButtonUp(event.jbutton);
+                m_useJoystick = true;
+                break;
+
+            case SDL_JOYAXISMOTION:
+                m_useJoystick = true;
                 break;
             
             default: 
@@ -116,15 +136,29 @@ final class TopDown : UserInterface
             }
         }
 
-        // Get current keystate
-        int numKeys;
-        const(ubyte)* pKeyboard = SDL_GetKeyboardState(&numKeys);
-        const(ubyte)[] keyboard = pKeyboard[0 .. numKeys];
+        if (!m_useJoystick)
+        {
+            // Get current keystate
+            int numKeys;
+            const(ubyte)* pKeyboard = SDL_GetKeyboardState(&numKeys);
+            const(ubyte)[] keyboard = pKeyboard[0 .. numKeys];
 
-        m_input.setDirection(Orientation.Top, keyboard[SDL_SCANCODE_UP] != 0);
-        m_input.setDirection(Orientation.Right, keyboard[SDL_SCANCODE_RIGHT] != 0);
-        m_input.setDirection(Orientation.Bottom, keyboard[SDL_SCANCODE_DOWN] != 0);
-        m_input.setDirection(Orientation.Left, keyboard[SDL_SCANCODE_LEFT] != 0);
+            m_input.setDirection(Orientation.Top, keyboard[SDL_SCANCODE_UP] != 0);
+            m_input.setDirection(Orientation.Right, keyboard[SDL_SCANCODE_RIGHT] != 0);
+            m_input.setDirection(Orientation.Bottom, keyboard[SDL_SCANCODE_DOWN] != 0);
+            m_input.setDirection(Orientation.Left, keyboard[SDL_SCANCODE_LEFT] != 0);
+        }
+        else 
+        {
+            short axis;
+            axis = SDL_GameControllerGetAxis(m_pApp.controller, SDL_CONTROLLER_AXIS_LEFTY);
+            m_input.setDirection(Orientation.Top, axis < -5_000);
+            m_input.setDirection(Orientation.Bottom, axis > 5_000);
+
+            axis = SDL_GameControllerGetAxis(m_pApp.controller, SDL_CONTROLLER_AXIS_LEFTX);
+            m_input.setDirection(Orientation.Left, axis < -5_000);
+            m_input.setDirection(Orientation.Right, axis > 5_000);
+        }
     }
 
 private:
@@ -151,6 +185,26 @@ private:
         
         default: 
             break;
+        }
+    }
+
+    void doButtonDown(scope ref SDL_JoyButtonEvent event)
+    {
+        m_logger.tracef("Joystick button %s pressed", event.button);
+
+        if (event.button == 0)
+        {
+            m_input.setAction(true);
+        }
+    }
+
+    void doButtonUp(scope ref SDL_JoyButtonEvent event)
+    {
+        m_logger.tracef("Joystick button %s released", event.button);
+
+        if (event.button == 0)
+        {
+            m_input.setAction(false);
         }
     }
 
@@ -245,5 +299,8 @@ private:
     InputComponent m_input;
     Character m_char;
     Character[] m_pnj;
+
+    Logger m_logger;
+    bool m_useJoystick;
 }
 

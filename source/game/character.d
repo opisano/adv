@@ -471,10 +471,10 @@ final class Character : Entity
     State m_state;
 
     // Position in map coordinates
-    Vector2D!float m_position;
+    Vec2f m_position;
 
     // Velocity on axes
-    Vector2D!float m_velocity;
+    Vec2f m_velocity;
 
     // Speed multiplier
     float m_speed = 1.0;
