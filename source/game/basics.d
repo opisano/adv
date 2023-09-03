@@ -31,7 +31,7 @@ interface Updatable
      * Update the current object
      * 
      * Params:
-     *     timeEllapsedMs = Time ellapsed since start (in milliseconds)
+     *     timeElapsedMs = Time elapsed since start (in milliseconds)
      */
     void update(ulong timeElapsedMs);
 }
@@ -97,5 +97,18 @@ void fillMenuRect(scope SDL_Renderer* pRenderer, scope ref const(SDL_Rect) rect,
     SDL_RenderFillRect(pRenderer, &rect);
 } 
 
+/** 
+    * Return whether there is a collision between two boxes or not 
+    */
+bool collide(scope ref const(SDL_Rect) rect1, scope ref const(SDL_Rect) rect2) pure nothrow @nogc
+{
+    if((rect2.x >= rect1.x + rect1.w)
+            || (rect2.x + rect2.w <= rect1.x) 
+            || (rect2.y >= rect1.y + rect1.h) 
+            || (rect2.y + rect2.h <= rect1.y))
+        return false; 
+    else
+        return true;
+}
 
 

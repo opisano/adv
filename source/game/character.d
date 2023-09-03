@@ -111,6 +111,11 @@ class InputComponent: Updatable
         m_actionPressed = false;
     }
 
+    final bool actionPressed() const 
+    {
+        return m_actionPressed;
+    }
+
 protected:
     Character* m_pChar;
     bool[4] m_directionsPressed;
@@ -176,9 +181,9 @@ private:
 }
 
 /** 
- * A component that tests collision agains the map 
+ * A component that tests collision against the map 
  */
-class CollisionComponent : Updatable 
+class MapCollisionComponent : Updatable 
 {
     this(Character* pChar, Map* pMap)
     {
@@ -259,21 +264,6 @@ private:
         }
     }
 
-    /** 
-     * Return whether there is a collision between two boxes or not 
-     */
-    static bool collide(scope ref const(SDL_Rect) rect1, scope ref const(SDL_Rect) rect2) pure 
-    {
-        if((rect2.x >= rect1.x + rect1.w)
-	            || (rect2.x + rect2.w <= rect1.x) 
-	            || (rect2.y >= rect1.y + rect1.h) 
-	            || (rect2.y + rect2.h <= rect1.y))
-            return false; 
-        else
-            return true;
-    }
-
-
     Character* m_pChar;
     Map* m_pMap;
 }
@@ -331,7 +321,7 @@ private:
 
 
 /** 
- * Holds tracermation about a character in a top down view.
+ * Holds information about a character in a top down view.
  */
 struct Character 
 {
@@ -381,10 +371,10 @@ struct Character
         }
     }
 
-    void update(ulong timeEllapsedMs)
+    void update(ulong timeElapsedMs)
     {
-        m_input.update(timeEllapsedMs);
-        m_collision.update(timeEllapsedMs);
+        m_input.update(timeElapsedMs);
+        m_collision.update(timeElapsedMs);
 
         if (m_velocity.length > 0) {
             m_position += m_velocity.normalized * m_speed;
@@ -394,6 +384,55 @@ struct Character
     SDL_Rect bbox() const 
     {
         return SDL_Rect(cast(int)m_position.x + 4, cast(int)m_position.y + 16, 24, 16);
+    }
+
+    /** 
+     * Returns the point at the center of character bounding box.
+     */
+    Vec2f center() const 
+    {
+        auto rect = bbox();
+        return Vec2f(rect.x + rect.w / 2, 
+                     rect.y + rect.h / 2); 
+    }
+
+    /** 
+     * Returns the distance to another Character
+     */
+    float distance(scope ref const Character other) const 
+    {
+        Vec2f a = center();
+        Vec2f b = other.center();
+        Vec2f c = b - a;
+        return c.length;
+    }
+
+    /** 
+     * Return true if this Character is facing the direction of another Character.
+     * 
+     * Params:
+     *     other: The other character to check for orientation. 
+     * 
+     */
+    bool facing(ref const(Character) other) pure const 
+    {
+        final switch (m_orientation)
+        {
+        case Orientation.Top:
+            return m_position.y > other.m_position.y;
+        case Orientation.Right:
+            return m_position.x < other.m_position.x;
+        case Orientation.Bottom:
+            return m_position.y < other.m_position.y;
+        case Orientation.Left:
+            return m_position.x > other.m_position.x;
+        }
+    }
+
+    string interact()
+    {
+        return "Bonjour, ceci est un texte qui doit etre decoupe en lignes.\nEt une troisieme.\n" 
+               ~ "Si ce texte est trop long, il doit etre decoupe.";
     }
 
     // Animation data 
@@ -416,7 +455,7 @@ struct Character
     // Component that react to user input
     InputComponent m_input;
     // Component that react to collisions 
-    CollisionComponent m_collision;
+    MapCollisionComponent m_collision;
 }
 
 Character createCharacter(RC!SpriteSheet pSpriteSheet, int charIndex)

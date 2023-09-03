@@ -6,11 +6,13 @@ import bindbc.sdl;
 import game.app: App, WINDOW_WIDTH, WINDOW_HEIGHT;
 import game.basics;
 import game.character;
+import game.dialog;
 import game.sprite;
 import game.map;
 
-import std.algorithm.sorting;
+import std.algorithm;
 import std.experimental.logger;
+import std.stdio;
 
 
 /** 
@@ -49,10 +51,10 @@ final class TopDown : UserInterface
     void loadMap(SDL_Renderer* pRenderer, string filename)
     {
         m_map = game.map.loadMap(pRenderer, filename);
-        m_char.m_collision = new CollisionComponent(&m_char, &m_map);
+        m_char.m_collision = new MapCollisionComponent(&m_char, &m_map);
         foreach (ref pnj; m_pnj)
         {
-            pnj.m_collision = new CollisionComponent(&pnj, &m_map);
+            pnj.m_collision = new MapCollisionComponent(&pnj, &m_map);
         }
     }
 
@@ -62,7 +64,7 @@ final class TopDown : UserInterface
     override void draw(scope SDL_Renderer* pRenderer)
     {
         drawMap(pRenderer);
-        drawChar(pRenderer);
+        drawCharacters(pRenderer);
     }   
 
     override void update(ulong timeElapsedMs)
@@ -73,6 +75,20 @@ final class TopDown : UserInterface
         foreach (ref pnj; m_pnj)
         {
             pnj.update(timeElapsedMs);
+        }
+
+        // If user pressed the action button
+        if (m_input.actionPressed)
+        {
+            auto candidates = m_pnj[].filter!(chr => m_char.distance(chr) < 16 && m_char.facing(chr));
+            if (!candidates.empty)
+            {
+                string text = candidates.front.interact();
+                auto dlg = new Dialog(m_pApp);
+                dlg.setText(text);
+                m_pApp.pushInterface(dlg);
+                m_input.setActionReleased();
+            }
         }
     }
 
@@ -163,9 +179,9 @@ private:
         }
     }
 
-    void drawChar(scope SDL_Renderer* pRenderer)
+    void drawCharacters(scope SDL_Renderer* pRenderer)
     {
-        m_pnj[].sort!("a.m_position.y < b.m_position.y");
+        m_pnj[].sort!((a, b) => a.m_position.y < b.m_position.y);
 
         size_t i;
         for (i = 0; i < m_pnj.length; ++i)
@@ -213,6 +229,11 @@ private:
                 m_input.setDirectionPressed(Orientation.Left);
                 break;
 
+            case SDLK_SPACE:
+                trace("Space pressed");
+                m_input.setActionPressed();
+                break;
+
             default:
                 break;
         }
@@ -243,6 +264,11 @@ private:
             case SDLK_LEFT:
                 trace("Left released");
                 m_input.setDirectionReleased(Orientation.Left);
+                break;
+
+            case SDLK_SPACE:
+                trace("Space released");
+                m_input.setActionReleased();
                 break;
 
             default:
