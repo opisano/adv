@@ -27,7 +27,7 @@ final class StartMenu : UserInterface
         }
     }
 
-    override void draw(SDL_Renderer* pRenderer)
+    override void draw(scope SDL_Renderer* pRenderer)
     {
         auto rect = SDL_Rect(150, 180, 200, 140);
         fillMenuRect(pRenderer, rect, SDL_Color(0x00, 0x00, 0xAA, 0xFF));

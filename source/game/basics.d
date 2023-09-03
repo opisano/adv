@@ -19,7 +19,7 @@ enum Orientation
  */
 interface Drawable 
 {
-    void draw(SDL_Renderer* pRenderer);
+    void draw(scope SDL_Renderer* pRenderer);
 }
 
 /** 
@@ -56,7 +56,7 @@ interface UserInterface : Drawable, Updatable
  *     color     = Color to draw
  *     thickness = thickness in pixels
  */
-void drawMenuRect(scope SDL_Renderer* pRenderer, scope ref const(SDL_Rect) rect, SDL_Color color, int thickness=5)
+void drawMenuRect(scope SDL_Renderer* pRenderer, scope ref const(SDL_Rect) rect, SDL_Color color, int thickness=5) @nogc
 {
     // Save render color, in order to restore it later
     ubyte old_r, old_g, old_b, old_a;
@@ -84,7 +84,7 @@ void drawMenuRect(scope SDL_Renderer* pRenderer, scope ref const(SDL_Rect) rect,
  *     rect      = Coordinates of the rectangle to draw
  *     color     = Color to draw
  */
-void fillMenuRect(scope SDL_Renderer* pRenderer, scope ref const(SDL_Rect) rect, SDL_Color color)
+void fillMenuRect(scope SDL_Renderer* pRenderer, scope ref const(SDL_Rect) rect, SDL_Color color) @nogc
 {
     // Save render color, in order to restore it later
     ubyte old_r, old_g, old_b, old_a;

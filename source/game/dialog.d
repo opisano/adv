@@ -14,25 +14,29 @@ import std.stdio;
 import std.uni;
 import std.utf;
 
-
+/// Normal text speed is one char every 60ms
 enum TEXT_SPEED = 60UL;
+
+/// Fast text speed is one char every 20ms
 enum FAST_TEXT_SPEED = 20UL;
 
 
 /** 
- * A Top-down view such as the one in a typical RPG.
+ * A Dialog view is used to display text when talking to 
+ * NPCs into a frame.
+ * 
  */
 class Dialog : UserInterface
 {
+    /// Constructor
     this(App* app)
     {
         m_pApp = app;
         loadFont();
         m_textPeriod = TEXT_SPEED;
-        m_logger = new FileLogger(stdout);
-        m_logger.logLevel = LogLevel.trace;
     }
 
+    /// Destructor
     ~this()
     {
         if (m_pFont)
@@ -41,13 +45,27 @@ class Dialog : UserInterface
         }
     }
 
+    /** 
+     * Loads text to display.
+     * 
+     * Before being displayed, text must be split into lines that fit 
+     * this dialog frame width.
+     * 
+     * Params:
+     *     text = Text to be displayed.
+     */ 
     void setText(string text)
     {
+        // First we (obviously) split on line breaks
         string[] lines;
         foreach (line; text.splitter("\n"))
         {
+            // Then we wrap text that does not fit in the frame
             lines ~= splitText(line);
         }
+
+        /* Since we display 3 lines simultaneously, create a range 
+           to iterate on 3 lines at a time. */
         m_text = chunks(lines, 3);
     }
 
@@ -58,38 +76,41 @@ class Dialog : UserInterface
         fillMenuRect(pRenderer, rect, SDL_Color(0x00, 0x00, 0xAA, 0xFF));
         drawMenuRect(pRenderer, rect, SDL_Color(0xFF, 0xFF, 0xFF, 0xFF), 5);
 
-        // Draw the current lines
-        size_t charsDrawn = 0;
+        // Draw the current lines to be displayed
 
+        // total character count drawn 
+        size_t charsDrawn = 0;
         foreach (i, line; m_text.front)
         {
-            if (charsDrawn == m_len)
+            // if we have drawn all the characters we had to, exit
+            if (charsDrawn == m_cursor)
             {
                 break;
             }
 
             //calculate the character count to draw for this line. 
-            ptrdiff_t prevLinesLength = m_text.front[0..i].map!(l => l.length).sum;
-            ptrdiff_t lengthToDraw = min(max(m_len - prevLinesLength, 0), line.length);
+            size_t prevLinesLength = m_text.front[0..i].map!(l => l.length).sum;
+            size_t lengthToDraw = min(m_cursor - prevLinesLength, line.length);
 
-            char[256] lineBuffer = 0;
+            /* D-string to C-string conversion:
+               Since SDL needs 0-terminated strings, copy line into a buffer on the stack */
+            char[64] lineBuffer = 0;
             sformat(lineBuffer, "%s", line[0..lengthToDraw]);
             drawText(pRenderer, lineBuffer.ptr, 20, cast(int)(20 + i * 30), SDL_Color(0xFF, 0xFF, 0xFF, 0xFF));
             charsDrawn += lengthToDraw;
         }
     }
 
-    override void update(ulong timeElapsedMs)
+    override void update(ulong timeElapsedMs) @nogc
     {
-        //if (!m_blocked)
-        //{
-            m_totalElapsed += timeElapsedMs;
-            while (m_totalElapsed >= m_textPeriod)
-            {
-                m_len = min(m_text.front[].map!(l => l.length).sum, m_len + 1);
-                m_totalElapsed -= m_textPeriod;
-            }
-        //}
+        // if enough time has passed, we can increment the number of characters to draw
+        // (depends on text speed)
+        m_totalElapsed += timeElapsedMs;
+        while (m_totalElapsed >= m_textPeriod)
+        {
+            m_cursor = min(m_text.front[].map!(l => l.length).sum, m_cursor + 1);
+            m_totalElapsed -= m_textPeriod;
+        }
     }
 
     override void input()
@@ -140,13 +161,14 @@ private:
 
     void doKeyUp(scope ref SDL_KeyboardEvent event)
     {
-                if (event.repeat != 0)
+        if (event.repeat != 0)
         {
             return;
         }
 
         switch (event.keysym.sym)
         {
+            // space was release, return to normal text speed
         case SDLK_SPACE:
             m_textPeriod = TEXT_SPEED;
             break;
@@ -165,11 +187,17 @@ private:
 
     void doAction()
     {
+        // Space was pressed, fast text speed
         m_textPeriod = FAST_TEXT_SPEED;
-        if (m_len >= m_text.front[].map!(l => l.length).sum)
+
+        // If we cannot display more text
+        if (m_cursor >= m_text.front[].map!(l => l.length).sum)
         {
+            // Move to the next lines
             m_text.popFront();
-            m_len = 0;
+            m_cursor = 0;
+
+            // If there are no more lines to display
             if (m_text.empty)
             {
                 m_pApp.popInterface();
@@ -177,7 +205,7 @@ private:
         }
     }
 
-    void drawText(scope SDL_Renderer* pRenderer, scope const(char)* text, int x, int y, SDL_Color color)
+    void drawText(scope SDL_Renderer* pRenderer, scope const(char)* text, int x, int y, SDL_Color color) @nogc
     {
         SDL_Surface* pSurface = TTF_RenderText_Blended(m_pFont, text, color);
         scope (exit) SDL_FreeSurface(pSurface);
@@ -241,12 +269,13 @@ private:
 
     App* m_pApp;
     TTF_Font* m_pFont;
+
+    /// Iterator on lines to display in the dialog frame
     Chunks!(string[]) m_text;
-    ptrdiff_t m_len;
-
-
+    /// Store the current text cursor position
+    size_t m_cursor;
+    /// Stores time elapsed (for moving the cursor)
     ulong m_totalElapsed;
     /// Text speed in milliseconds per character
     ulong m_textPeriod;
-    Logger m_logger;
 }
