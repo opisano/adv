@@ -78,16 +78,16 @@ final class TopDown : UserInterface
         }
 
         // If user pressed the action button
-        if (m_input.actionPressed)
+        if (m_input.isAction)
         {
-            auto candidates = m_pnj[].filter!(chr => m_char.distance(chr) < 16 && m_char.facing(chr));
+            auto candidates = m_pnj[].filter!(chr => m_char.distance(chr) < 32 && m_char.facing(chr));
             if (!candidates.empty)
             {
                 string text = candidates.front.interact();
                 auto dlg = new Dialog(m_pApp);
                 dlg.setText(text);
                 m_pApp.pushInterface(dlg);
-                m_input.setActionReleased();
+                m_input.setAction(false);
             }
         }
     }
@@ -95,7 +95,6 @@ final class TopDown : UserInterface
     override void input()
     {
         SDL_Event event;
-
         while (SDL_PollEvent(&event))
         {
             switch (event.type)
@@ -108,17 +107,36 @@ final class TopDown : UserInterface
                 doKeyDown(event.key);
                 break;
             
-            case SDL_KEYUP:
-                doKeyUp(event.key);
-                break;
-            
             default: 
                 break;
             }
         }
+
+        // Get current keystate
+        int numKeys;
+        const(ubyte)* pKeyboard = SDL_GetKeyboardState(&numKeys);
+        const(ubyte)[] keyboard = pKeyboard[0 .. numKeys];
+
+        m_input.setDirection(Orientation.Top, keyboard[SDL_SCANCODE_UP] != 0);
+        m_input.setDirection(Orientation.Right, keyboard[SDL_SCANCODE_RIGHT] != 0);
+        m_input.setDirection(Orientation.Bottom, keyboard[SDL_SCANCODE_DOWN] != 0);
+        m_input.setDirection(Orientation.Left, keyboard[SDL_SCANCODE_LEFT] != 0);
     }
 
 private:
+    void doKeyDown(scope ref SDL_KeyboardEvent keyEvent)
+    {
+        switch (keyEvent.keysym.scancode)
+        {
+        case SDL_SCANCODE_SPACE:
+            m_input.setAction(true);
+            break;
+
+        default:
+            break;
+        }
+    }
+
     void updateViewPort()
     {
         m_viewport.x = cast(int)m_char.m_position.x - (WINDOW_WIDTH / 2);
@@ -199,80 +217,6 @@ private:
         for (; i < m_pnj.length; ++i)
         {
             m_pnj[i].draw(pRenderer, m_viewport);
-        }
-    }
-
-    void doKeyDown(scope ref SDL_KeyboardEvent event)
-    {
-        if (event.repeat > 0)
-            return;
-
-        switch (event.keysym.sym)
-        {
-            case SDLK_UP:
-                trace("Up pressed");
-                m_input.setDirectionPressed(Orientation.Top);
-                break;
-            
-            case SDLK_RIGHT:
-                trace("Right pressed");
-                m_input.setDirectionPressed(Orientation.Right);
-                break;
-
-            case SDLK_DOWN:
-                trace("Down pressed"); 
-                m_input.setDirectionPressed(Orientation.Bottom);
-                break;
-            
-            case SDLK_LEFT:
-                trace("Left pressed");
-                m_input.setDirectionPressed(Orientation.Left);
-                break;
-
-            case SDLK_SPACE:
-                trace("Space pressed");
-                m_input.setActionPressed();
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    void doKeyUp(scope ref SDL_KeyboardEvent event)
-    {
-        if (event.repeat > 0)
-            return;
-
-        switch (event.keysym.sym)
-        {
-            case SDLK_UP:
-                trace("Up released");
-                m_input.setDirectionReleased(Orientation.Top);
-                break;
-            
-            case SDLK_RIGHT:
-                trace("Right released");
-                m_input.setDirectionReleased(Orientation.Right);
-                break;
-
-            case SDLK_DOWN: 
-                trace("Down released");
-                m_input.setDirectionReleased(Orientation.Bottom);
-                break;
-            
-            case SDLK_LEFT:
-                trace("Left released");
-                m_input.setDirectionReleased(Orientation.Left);
-                break;
-
-            case SDLK_SPACE:
-                trace("Space released");
-                m_input.setActionReleased();
-                break;
-
-            default:
-                break;
         }
     }
 

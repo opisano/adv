@@ -90,31 +90,27 @@ class InputComponent: Updatable
         }
     }
 
-    void setDirectionPressed(Orientation orientation)
-    {        
-        m_directionsPressed[cast(size_t)orientation] = true;
-
-    }
-
-    void setDirectionReleased(Orientation orientation)
+    final void setDirection(Orientation orientation, bool value)
     {
-        m_directionsPressed[cast(size_t)orientation] = false;
+        m_directionsPressed[orientation] = value;
     }
 
-    void setActionPressed()
+    final bool isDirection(Orientation orientation)
     {
-        m_actionPressed = true;
+        return m_directionsPressed[orientation];
     }
 
-    void setActionReleased()
+    final void setAction(bool value)
     {
-        m_actionPressed = false;
+        m_actionPressed = value;
     }
 
-    final bool actionPressed() const 
+    final bool isAction() const 
     {
         return m_actionPressed;
     }
+
+    
 
 protected:
     Character* m_pChar;
