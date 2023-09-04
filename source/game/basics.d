@@ -99,8 +99,8 @@ void fillMenuRect(scope SDL_Renderer* pRenderer, scope ref const(SDL_Rect) rect,
 } 
 
 /** 
-    * Return whether there is a collision between two boxes or not 
-    */
+ * Return whether there is a collision between two boxes or not 
+ */
 bool collide(scope ref const(SDL_Rect) rect1, scope ref const(SDL_Rect) rect2) pure nothrow @nogc
 {
     if((rect2.x >= rect1.x + rect1.w)
@@ -112,7 +112,20 @@ bool collide(scope ref const(SDL_Rect) rect1, scope ref const(SDL_Rect) rect2) p
         return true;
 }
 
+unittest 
+{
+    const r1 = SDL_Rect(0, 0, 32, 32);
+    const r2 = SDL_Rect(100, 100, 32, 32);
+    const r3 = SDL_Rect(16, 16, 32, 32);
 
+    assert (!r1.collide(r2));
+    assert (r1.collide(r3));
+}
+
+
+/**
+ * Abstract base class for all the entities 
+ */
 abstract class Entity : Updatable
 {
     abstract void draw(scope SDL_Renderer* pRenderer, SDL_Point viewPort);
@@ -122,6 +135,12 @@ abstract class Entity : Updatable
      */
     abstract SDL_Rect bbox() const pure;
 
+    /** 
+     * Called when the Hero interacts with this entity
+     * 
+     * Params:
+     *     The entity that interacts with this entity (the hero).
+     */
     abstract string interact(scope const(Entity) );
 
     /** 
@@ -132,6 +151,21 @@ abstract class Entity : Updatable
         auto rect = bbox();
         return Vec2f(rect.x + rect.w / 2, 
                      rect.y + rect.h / 2); 
+    }
+
+    unittest 
+    {
+        class Stub : Entity
+        {
+            override void draw(scope SDL_Renderer* pRenderer, SDL_Point viewPort) { }
+            override SDL_Rect bbox() const pure { return SDL_Rect( 0, 0, 32, 32); }
+            override string interact(scope const(Entity)) { return ""; }
+        }
+
+        scope s1 = new Stub;
+        auto c = s1.center;
+
+        assert (c == Vec2f(16, 16));
     }
 
     /** 
@@ -145,6 +179,26 @@ abstract class Entity : Updatable
         return c.length;
     }
 
-protected:
-    SDL_Point m_position;
+    unittest 
+    {
+        class Stub1 : Entity
+        {
+            override void draw(scope SDL_Renderer* pRenderer, SDL_Point viewPort) { }
+            override SDL_Rect bbox() const pure { return SDL_Rect( 0, 0, 32, 32); }
+            override string interact(scope const(Entity)) { return ""; }
+        }
+
+        class Stub2 : Entity
+        {
+            override void draw(scope SDL_Renderer* pRenderer, SDL_Point viewPort) { }
+            override SDL_Rect bbox() const pure { return SDL_Rect( 100, 0, 32, 32); }
+            override string interact(scope const(Entity)) { return ""; }
+        }
+
+        scope Entity s1 = new Stub1;
+        scope Entity s2 = new Stub2;
+
+        float dist = s2.distance(s1);
+        assert (dist == 100);        
+    }
 }
