@@ -219,7 +219,7 @@ private:
 
     void loadFont()
     {
-        const(char)* filename = "./fonts/ManaspaceRegular.ttf";
+        const(char)* filename = "./fonts/SMW Text NC.ttf";
         m_pFont = TTF_OpenFont(filename, 20);
         enforce(m_pFont != null, "Could not load file %s".format(filename));
     }
@@ -246,7 +246,7 @@ private:
 
     void drawText(scope SDL_Renderer* pRenderer, scope const(char)* text, int x, int y, SDL_Color color) @nogc
     {
-        SDL_Surface* pSurface = TTF_RenderText_Blended(m_pFont, text, color);
+        SDL_Surface* pSurface = TTF_RenderUTF8_Blended(m_pFont, text, color);
         scope (exit) SDL_FreeSurface(pSurface);
 
         SDL_Texture* pTexture = SDL_CreateTextureFromSurface(pRenderer, pSurface);

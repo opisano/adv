@@ -459,8 +459,8 @@ final class Character : Entity
     {
         setFacing(c);
 
-        return "Bonjour, ceci est un texte qui doit etre decoupe en lignes.\nEt une troisieme.\n" 
-               ~ "Si ce texte est trop long, il doit etre decoupe.";
+        return "Bonjour, ceci est un texte qui doit être découpé en lignes.\nEt une troisième.\n" 
+               ~ "Si ce texte est trop long, il doit être découpé.";
     }
 
     // Animation data 
