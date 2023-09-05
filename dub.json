@@ -9,7 +9,8 @@
 	"copyright": "Copyright © 2023, Olivier Pisano, Nathan Risbourg",
 	"dependencies": {
 		"automem": "~>0.6.9",
-		"bindbc-sdl": "~>1.4.2"
+		"bindbc-sdl": "~>1.4.2",
+		"inifiled": "~>2.0.0"
 	},
 	"versions": [
 		"SDL_2_26", "SDL_TTF_2018", "SDL_Image_2_6"
