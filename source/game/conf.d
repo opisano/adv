@@ -99,6 +99,7 @@ bool check(scope ref const Joypad joypad)
         error("Joypad buttons have duplicate values");
         return false;
     }
+    return true;
 }
 
 
@@ -153,7 +154,7 @@ string configFilename()
            in the path pointed by $XDG_CONFIG_HOME. If this environment variable is not set, it 
            defaults to ~/.config.
         */
-        return buildpath(environment.get("XDG_CONFIG_HOME", 
+        return buildPath(environment.get("XDG_CONFIG_HOME", 
                                          buildPath(environment["HOME"], ".config")), 
                          "adv", 
                          "adv.cfg");

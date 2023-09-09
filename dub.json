@@ -13,9 +13,17 @@
 		"inifiled": "~>2.0.0"
 	},
 	"versions": [
-		"SDL_2_26", "SDL_TTF_2018", "SDL_Image_2_6"
+		"SDL_2_20", "SDL_TTF_2018", "SDL_Image_205"
 	],
 	"description": "A minimal D application.",
-	"license": "proprietary",
-	"name": "adv"
+	"license": "Boost",
+	"name": "adv",
+	"subPackages": [
+		{
+			"name": "ecsd",
+			"targetType": "library",
+			"sourcePaths": ["ecsd/source"],
+			"includePaths": ["ecsd/source"]
+		}
+	]
 }
