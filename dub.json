@@ -10,7 +10,8 @@
 	"dependencies": {
 		"automem": "~>0.6.9",
 		"bindbc-sdl": "~>1.4.2",
-		"inifiled": "~>2.0.0"
+		"inifiled": "~>2.0.0",
+		"emsi_containers": "~>0.9.0"
 	},
 	"versions": [
 		"SDL_2_20", "SDL_TTF_2018", "SDL_Image_205"

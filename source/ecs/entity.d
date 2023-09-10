@@ -4,7 +4,8 @@ import ecs.bitset;
 import ecs.queue;
 
 /// A simple type alias 
-alias Entity = uint;
+alias Entity = ushort;
+enum INVALID_ENTITY = Entity.max;
 
 /// Used to define the size of arrays
 enum Entity MAX_ENTITIES = 5_000;
@@ -39,7 +40,7 @@ struct EntityManager
         // make all the entities available 
         foreach (i; 0 .. MAX_ENTITIES)
         {
-            em.m_availableEntities.push(i);
+            em.m_availableEntities.push(cast(Entity)i);
         }
 
         return em;
