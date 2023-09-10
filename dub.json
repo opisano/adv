@@ -17,13 +17,5 @@
 	],
 	"description": "A minimal D application.",
 	"license": "Boost",
-	"name": "adv",
-	"subPackages": [
-		{
-			"name": "ecsd",
-			"targetType": "library",
-			"sourcePaths": ["ecsd/source"],
-			"includePaths": ["ecsd/source"]
-		}
-	]
+	"name": "adv"
 }
