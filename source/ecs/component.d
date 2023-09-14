@@ -1,6 +1,7 @@
 module ecs.component;
 
 import ecs.entity;
+import ecs.flatmap;
 
 /** 
  * Implementation of the Observable design pattern to track Entity lifetime.
@@ -120,7 +121,112 @@ unittest
 
 }
 
+
+/** 
+ * The ComponentManager is in charge of talking to all of the different 
+ * ComponentArrays when a component needs to be added or removed.
+ */
 struct ComponentManager
 {
-    
+    /** 
+     * Adds support for a new type of Component.
+     * 
+     */
+    void registerComponent(T)()
+    {
+        string typeName = T.stringof;
+        assert (m_componentTypes.find(typeName).isNull);
+
+        m_componentTypes.insert(typeName, m_nextComponentType);
+        m_componentArrays.insert(typeName, new ComponentArray!T);
+        m_nextComponentType++;
+    }
+
+    /** 
+     * Returns the internal component type identifier of a type.
+     */
+    ComponentType getComponentType(T)()
+    {
+        string typeName = T.stringof;
+        assert (!m_componentTypes.find(typeName).isNull);
+
+        return m_componentTypes[typeName];
+    }
+
+    /** 
+     * Adds a new Entity - Component association.
+     */
+    void addComponent(T)(Entity entity, T component)
+    {
+        getComponentArray!T.insert(entity, component);
+    }
+
+    /** 
+     * Deletes an existing Entity - Component association.
+     */
+    void removeComponent(T)(Entity entity)
+    {
+        getComponentArray!T.remove(entity);
+    }
+
+    /** 
+     * Get the Component associated to an entity.
+     *
+     * Params:
+     *     entity = The entity to get the component for.
+     */
+    ref T getComponent(T)(Entity entity)
+    {
+        return getComponentArray!T.get(entity);
+    }
+
+    /** 
+     * Clears every resource used by an entity.
+     */
+    void entityDestroyed(Entity entity)
+    {
+        foreach (ref component; m_componentArrays.values)
+        {
+            component.entityDestroyed(entity);
+        }
+    }
+
+private:
+    FlatMap!(string, ComponentType) m_componentTypes;
+    FlatMap!(string, EntityObserver) m_componentArrays;
+    ComponentType m_nextComponentType;
+
+    ComponentArray!T getComponentArray(T)()
+    {
+        string typeName = T.stringof;
+        assert (!m_componentTypes.find(typeName).isNull);
+        return cast(ComponentArray!T) m_componentArrays[typeName];
+    }
+}
+
+unittest 
+{
+    Entity e = 42;
+
+    ComponentManager mgr;
+    mgr.registerComponent!int();
+    mgr.registerComponent!double();
+
+    ComponentType ctInt = mgr.getComponentType!int;
+    ComponentType ctDbl = mgr.getComponentType!double;
+
+    assert (ctInt != ctDbl);
+
+    mgr.addComponent!int(e, 18);
+    mgr.addComponent!double(e, 3.14);
+
+    assert (mgr.getComponent!int(e) == 18);
+    assert (mgr.getComponent!double(e) == 3.14);
+
+    mgr.getComponent!int(e) += 1;
+
+    assert (mgr.getComponent!int(e) == 19);
+
+    mgr.removeComponent!int(e);
+    mgr.removeComponent!double(e);
 }
