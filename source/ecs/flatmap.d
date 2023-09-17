@@ -5,6 +5,7 @@ import automem.vector;
 import std.algorithm.iteration: map;
 import std.algorithm.searching: countUntil;
 import core.exception;
+import std.range;
 import std.typecons;
 
 version (unittest)
@@ -146,6 +147,8 @@ struct FlatMap(K, V)
 
         assert (fm.values.equal([22, 30]));
     }
+
+
 
 private:
     Vector!K m_keys;
