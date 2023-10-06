@@ -4,6 +4,7 @@ import bindbc.sdl;
 
 import game.app: App, WINDOW_HEIGHT, WINDOW_WIDTH;
 import game.basics;
+import game.widgets.widget;
 
 import std.algorithm;
 import std.exception;
@@ -31,17 +32,8 @@ class Dialog : UserInterface
     this(App* app)
     {
         m_pApp = app;
-        loadFont();
+        m_pFont = app.font;
         m_textPeriod = TEXT_SPEED;
-    }
-
-    /// Destructor
-    ~this()
-    {
-        if (m_pFont)
-        {
-            TTF_CloseFont(m_pFont);
-        }
     }
 
     /** 
@@ -68,6 +60,12 @@ class Dialog : UserInterface
         m_text = chunks(lines, 3);
     }
 
+    /** 
+     * Display text in current state.
+     * 
+     * Params:
+     *     pRenderer = Graphical context to draw to.
+     */
     override void draw(scope SDL_Renderer* pRenderer)
     {
         // Draw Text Frame 
@@ -215,13 +213,6 @@ private:
         {
             m_textPeriod = TEXT_SPEED;
         }
-    }
-
-    void loadFont()
-    {
-        const(char)* filename = "./fonts/SMW Text NC.ttf";
-        m_pFont = TTF_OpenFont(filename, 20);
-        enforce(m_pFont != null, "Could not load file %s".format(filename));
     }
 
     void doAction()

@@ -15,16 +15,8 @@ final class StartMenu : UserInterface
     this(App* app)
     {
         m_pApp = app;
-        loadFont();
+        m_pFont = app.font;
         createWidgets();
-    }
-
-    ~this()
-    {
-        if (m_pFont)
-        {
-            TTF_CloseFont(m_pFont);
-        }
     }
 
     override void draw(scope SDL_Renderer* pRenderer)
@@ -72,13 +64,6 @@ final class StartMenu : UserInterface
     }
 
 private:
-
-    void loadFont()
-    {
-        const(char)* filename = "./fonts/ManaspaceRegular.ttf";
-        m_pFont = TTF_OpenFont(filename, 20);
-        enforce(m_pFont != null, "Could not load file %s".format(filename));
-    }
 
     void createWidgets()
     {

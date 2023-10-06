@@ -7,6 +7,7 @@ import game.basics;
 import game.startmenu;
 import std.algorithm;
 import std.conv;
+import std.exception;
 import std.file;
 import std.experimental.logger;
 import std.format;
@@ -43,6 +44,7 @@ struct App
     {
         initializeSDL;
         initJoystick;
+        loadFont;
         createWindow;
         createStartMenu;
     }
@@ -67,6 +69,11 @@ struct App
         if (m_pController != null)
         {
             SDL_GameControllerClose(m_pController);
+        }
+
+        if (m_pFont != null)
+        {
+            TTF_CloseFont(m_pFont);
         }
     }
 
@@ -128,6 +135,11 @@ struct App
     SDL_GameController* controller()
     {
         return m_pController;
+    }
+    
+    TTF_Font* font() 
+    {
+        return m_pFont;
     }
 
 private:
@@ -259,6 +271,13 @@ private:
         }
 	}
 
+    void loadFont()
+    {
+        const(char)* filename = "./fonts/SMW Text NC.ttf";
+        m_pFont = TTF_OpenFont(filename, 20);
+        enforce(m_pFont != null, "Could not load file %s".format(filename));
+    }
+
     /// The user interface stack
     UserInterface[] m_uis;
     /// The SDL component that talks to the GPU
@@ -271,6 +290,8 @@ private:
 	bool m_active;
     /// Used for logging
     Logger m_logger;
+
+    TTF_Font* m_pFont;
 }
 
 
