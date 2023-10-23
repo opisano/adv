@@ -17,7 +17,6 @@ import std.math;
 import std.random;
 import std.stdio;
 
-
 /** 
  * A Top-down view such as the one in a typical RPG.
  */
@@ -328,6 +327,14 @@ abstract class Entity : Updatable
      */
     abstract SDL_Rect bbox() const pure;
 
+    /**
+     * Returns this entity bounding box as if it were located at position "position"
+     *
+     * Params: 
+     *     The position from which the bounding box will be calculated
+     */
+    abstract SDL_Rect bboxAtPosition(scope const Vec2f position) const pure;
+
     /** 
      * Called when the Hero interacts with this entity
      * 
@@ -578,72 +585,77 @@ class MapCollisionComponent : Updatable
 
     override void update(ulong elapsedTimeMs)
     {
+        // check collision with the next position of the character
+        Vec2f nextXPosition = m_char.m_position + Vec2f(m_char.m_velocity.x, 0) * m_char.m_speed;
+        Vec2f nextYPosition = m_char.m_position + Vec2f(0, m_char.m_velocity.y) * m_char.m_speed;
+
+        SDL_Rect nextXPositionBbox = m_char.bboxAtPosition(nextXPosition);
+        SDL_Rect nextYPositionBbox = m_char.bboxAtPosition(nextYPosition);
+
         // collision test depend on the direction the character is walking 
 
         if (m_char.m_velocity.x < 0)
         {
-            testCollisionLeft();
+            testCollisionLeft(nextXPositionBbox);
         }
         else if (m_char.m_velocity.x > 0)
         {
-            testCollisionRight();
+            testCollisionRight(nextXPositionBbox);
         }
 
         if (m_char.m_velocity.y < 0)
         {
-            testCollisionTop();
+            testCollisionTop(nextYPositionBbox);
         }
         else if (m_char.m_velocity.y > 0)
         {
-            testCollisionBottom();
+            testCollisionBottom(nextYPositionBbox);
         }
     }
 
 private:
 
-    void testCollisionLeft()
+    void testCollisionLeft(SDL_Rect characterBbox)
     {
-        auto charRect = m_char.bbox();
         // get the bounding box of the first colliding tile left from this character
-        auto leftBbox = m_pMap.bboxLeftOf(charRect);
+        auto leftBbox = m_pMap.bboxLeftOf(characterBbox);
 
-        if (collide(charRect, leftBbox))
+        if (collide(characterBbox, leftBbox))
         {
             m_char.m_velocity.x = 0;
+        } else {
+            int a = 2;
         }
     }
 
-    void testCollisionRight()
+    void testCollisionRight(SDL_Rect characterBbox)
     {
-        auto charRect = m_char.bbox();
         // get the bounding box of the first colliding tile right from this character
-        auto rightBbox = m_pMap.bboxRightOf(charRect);
+        auto rightBbox = m_pMap.bboxRightOf(characterBbox);
 
-        if (collide(charRect, rightBbox))
+        if (collide(characterBbox, rightBbox))
         {
             m_char.m_velocity.x = 0;
         }
     }
 
-    void testCollisionTop()
+    void testCollisionTop(SDL_Rect characterBbox)
     {
-        auto charRect = m_char.bbox();
         // get the bounding box of the first colliding tile top from this character
-        auto rightBbox = m_pMap.bboxTopOf(charRect);
+        auto topBbox = m_pMap.bboxTopOf(characterBbox);
 
-        if (collide(charRect, rightBbox))
+        if (collide(characterBbox, topBbox))
         {
             m_char.m_velocity.y = 0;
         }
     }
 
-    void testCollisionBottom()
+    void testCollisionBottom(SDL_Rect characterBbox)
     {
-        auto charRect = m_char.bbox();
         // get the bounding box of the first colliding tile bottom from this character
-        auto rightBbox = m_pMap.bboxBottomOf(charRect);
+        auto bottomBbox = m_pMap.bboxBottomOf(characterBbox);
 
-        if (collide(charRect, rightBbox))
+        if (collide(characterBbox, bottomBbox))
         {
             m_char.m_velocity.y = 0;
         }
@@ -770,6 +782,11 @@ final class Character : Entity
     override SDL_Rect bbox() const pure
     {
         return SDL_Rect(cast(int)m_position.x + 4, cast(int)m_position.y + 16, 24, 16);
+    }
+
+    override SDL_Rect bboxAtPosition(scope const Vec2f position) const pure
+    {
+        return SDL_Rect(cast(int)position.x + 4, cast(int)position.y + 16, 24, 16);
     }
 
     /** 

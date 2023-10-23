@@ -103,10 +103,10 @@ void fillMenuRect(scope SDL_Renderer* pRenderer, scope ref const(SDL_Rect) rect,
  */
 bool collide(scope ref const(SDL_Rect) rect1, scope ref const(SDL_Rect) rect2) pure nothrow @nogc @safe
 {
-    if((rect2.x >= rect1.x + rect1.w)
-            || (rect2.x + rect2.w <= rect1.x) 
-            || (rect2.y >= rect1.y + rect1.h) 
-            || (rect2.y + rect2.h <= rect1.y))
+    if((rect2.x > rect1.x + rect1.w)
+            || (rect2.x + rect2.w < rect1.x) 
+            || (rect2.y > rect1.y + rect1.h) 
+            || (rect2.y + rect2.h < rect1.y))
         return false; 
     else
         return true;
