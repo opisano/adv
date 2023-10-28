@@ -333,7 +333,7 @@ abstract class Entity : Updatable
      * Params: 
      *     The position from which the bounding box will be calculated
      */
-    abstract SDL_Rect bboxAtPosition(scope const Vec2f position) const pure;
+    abstract SDL_Rect bboxAtPosition(Vec2f position) const pure;
 
     /** 
      * Called when the Hero interacts with this entity
@@ -623,8 +623,6 @@ private:
         if (collide(characterBbox, leftBbox))
         {
             m_char.m_velocity.x = 0;
-        } else {
-            int a = 2;
         }
     }
 
@@ -784,7 +782,7 @@ final class Character : Entity
         return SDL_Rect(cast(int)m_position.x + 4, cast(int)m_position.y + 16, 24, 16);
     }
 
-    override SDL_Rect bboxAtPosition(scope const Vec2f position) const pure
+    override SDL_Rect bboxAtPosition(Vec2f position) const pure
     {
         return SDL_Rect(cast(int)position.x + 4, cast(int)position.y + 16, 24, 16);
     }
