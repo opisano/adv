@@ -1,6 +1,5 @@
 module game.topdown;
 
-import automem;
 import bindbc.sdl;
 
 import game.app: App, WINDOW_WIDTH, WINDOW_HEIGHT;
@@ -252,7 +251,8 @@ private:
     {
         foreach (dst, src; layer.data)
         {
-            SDL_Rect srcRect = m_map.tileSets[0][src];
+            TileSet* ts = m_map.tileSets[0];
+            SDL_Rect srcRect = (*ts)[src];
             SDL_Rect dstRect = m_map[dst];
             dstRect.x -= m_viewport.x;
             dstRect.y -= m_viewport.y;
@@ -666,7 +666,7 @@ private:
 
 struct CharacterBuilder
 {
-    this(RC!SpriteSheet pSpriteSheet)
+    this(SpriteSheet* pSpriteSheet)
     {
         m_pSpriteSheet = pSpriteSheet;
         m_char = new Character();
@@ -711,7 +711,7 @@ struct CharacterBuilder
     }
 
 private:
-    RC!SpriteSheet m_pSpriteSheet;
+    SpriteSheet* m_pSpriteSheet;
     Character m_char;
 }
 
@@ -886,7 +886,7 @@ final class Character : Entity
     MapCollisionComponent m_collision;
 }
 
-Character createCharacter(RC!SpriteSheet pSpriteSheet, int charIndex)
+Character createCharacter(SpriteSheet* pSpriteSheet, int charIndex)
 {
     int animOffset = ((charIndex % 4) * 3) + ((charIndex / 4) * 48);
 

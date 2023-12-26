@@ -1,6 +1,5 @@
 module game.sprite;
 
-import automem.ref_counted;
 import bindbc.sdl;
 import std.format;
 import std.range;
@@ -14,7 +13,7 @@ struct SpriteSheetBuilder
 {
     this(scope SDL_Renderer* pRenderer, string filename)
     {
-        m_pSpriteSheet = RC!SpriteSheet(pRenderer, filename);
+        m_pSpriteSheet = new SpriteSheet(pRenderer, filename);
     }
 
     ref SpriteSheetBuilder width(int w) return 
@@ -41,13 +40,13 @@ struct SpriteSheetBuilder
         return this;
     }
 
-    RC!SpriteSheet build()
+    SpriteSheet* build()
     {
         return m_pSpriteSheet;
     }
 
 private:
-    RC!SpriteSheet m_pSpriteSheet;
+    SpriteSheet* m_pSpriteSheet;
 }
 
 
@@ -130,7 +129,7 @@ struct Animation
      *     pSpriteSheet = the sprite sheet 
      *     indices = an array of size_t indices.
      */
-    this(RC!SpriteSheet pSpriteSheet, int[] indices)
+    this(SpriteSheet* pSpriteSheet, int[] indices)
     {
         m_spriteSheet = pSpriteSheet;
 
@@ -159,6 +158,6 @@ struct Animation
     }
 
 private:
-    RC!SpriteSheet m_spriteSheet;
+    SpriteSheet* m_spriteSheet;
     Cycle!(int[]) m_indices;
 }

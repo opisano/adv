@@ -1,10 +1,9 @@
 module game.map;
 
-import automem.ref_counted;
-import automem.vector;
 import bindbc.sdl;
 import core.exception;
 import std.algorithm.searching;
+import std.range.primitives;
 import std.exception;
 import std.format;
 import std.stdio;
@@ -26,9 +25,9 @@ struct Map
     ushort tileHeight;
 
     /// Stores tile sets to be loaded with this map
-    Vector!(RC!(TileSet)) tileSets;
+    TileSet*[] tileSets;
     /// Stores Layers of tiles from bottom to top (0 is background, 1 is foreground...)
-    Vector!(Layer) layers;
+    Layer[] layers;
 
     /** 
      * Converts a tile index to a rectangle region in the map (in pixels).
@@ -275,8 +274,8 @@ struct TileSet
 struct Layer
 {
     ushort id;
-    Vector!(char) name;
-    Vector!(ushort) data;
+    char[] name;
+    ushort[] data;
 }
 
 
@@ -323,7 +322,7 @@ Map loadMap(scope SDL_Renderer* pRenderer, string filename)
         for (int i = 0; i < len; ++i)
         {
             ushort[5] buffer2;
-            result.tileSets.put(RC!TileSet.construct());
+            result.tileSets ~= new TileSet();
             ushort[] b = f.rawRead!ushort(buffer2[]);
             result.tileSets[$-1].firstGid = b[0];
             result.tileSets[$-1].tileWidth = b[1];
@@ -331,12 +330,12 @@ Map loadMap(scope SDL_Renderer* pRenderer, string filename)
             result.tileSets[$-1].tileCount = b[3];
             result.tileSets[$-1].columns = b[4];
 
-            Vector!char chars;
+            char[] chars;
             f.rawRead!ushort(buffer[]);
-            chars.put("tiles/");
+            chars ~= "tiles/";
             chars.length = buffer[0] + "tiles/".length;
             f.rawRead!char(chars[6..$]);
-            chars.put('\0');
+            chars ~= '\0';
 
             result.tileSets[$-1].pTexture = IMG_LoadTexture(pRenderer, &chars[0]);
             enforce(result.tileSets[$-1].pTexture != null, "Could not load file %s".format(chars[]));
@@ -353,7 +352,7 @@ Map loadMap(scope SDL_Renderer* pRenderer, string filename)
         for (int i = 0; i < len; ++i)
         {
             ushort[2] buffer2;
-            result.layers.put(Layer());
+            result.layers ~= Layer();
             auto b = f.rawRead!ushort(buffer2[]);
             result.layers[$-1].id = b[0];
             result.layers[$-1].name.length = b[1];
