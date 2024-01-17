@@ -24,18 +24,24 @@ final class TopDown : UserInterface
     this(App* app)
     {
         m_pApp = app;
-        auto pSpriteSheet = SpriteSheetBuilder(app.renderer, "sprites/Actor1.png").width(12)
-                                                                                  .height(8)
-                                                                                  .spriteWidth(32)
-                                                                                  .spriteHeight(32)
-                                                                                  .build();
+        auto pWarriorMale = SpriteSheetBuilder(app.renderer, "sprites/warrior-m.png").width(3)
+                                                                                     .height(4)
+                                                                                     .spriteWidth(16)
+                                                                                     .spriteHeight(18)
+                                                                                     .build();
 
-        m_char = createCharacter(pSpriteSheet, 0);
+        auto pWarriorFemale = SpriteSheetBuilder(app.renderer, "sprites/warrior-f.png").width(3)
+                                                                                     .height(4)
+                                                                                     .spriteWidth(16)
+                                                                                     .spriteHeight(18)
+                                                                                     .build();
+
+        m_char = createCharacter(pWarriorMale);
         m_input = m_char.m_input = new InputComponent(m_char);
         m_char.m_position.x = WINDOW_WIDTH / 2 - 16;
         m_char.m_position.y = WINDOW_HEIGHT / 2 - 16;
 
-        m_pnj ~= createCharacter(pSpriteSheet, 5);
+        m_pnj ~= createCharacter(pWarriorFemale);
         m_pnj[$-1].m_position.x = 100;
         m_pnj[$-1].m_position.y = 50;
         m_pnj[$-1].m_orientation = Orientation.Bottom;
@@ -758,7 +764,7 @@ final class Character : Entity
         {
         
             // Determine where to draw on the screen
-            SDL_Rect dstRect = SDL_Rect(screenX, screenY, srcRect.w, srcRect.h);
+            SDL_Rect dstRect = SDL_Rect(screenX, screenY, 32, 32);
             SDL_RenderCopy(pRenderer, anim.texture, &srcRect, &dstRect);
 
             version (Collisions)
@@ -890,43 +896,18 @@ final class Character : Entity
     MapCollisionComponent m_collision;
 }
 
-Character createCharacter(SpriteSheet* pSpriteSheet, int charIndex)
+Character createCharacter(SpriteSheet* pSpriteSheet)
 {
-    int animOffset = ((charIndex % 4) * 3) + ((charIndex / 4) * 48);
+    int[] walkTop = [0, 1, 2, 1];
 
-    int[] walkTop = [
-        3 * pSpriteSheet.width + animOffset,
-        3 * pSpriteSheet.width + animOffset + 1, 
-        3 * pSpriteSheet.width + animOffset + 2,
-        3 * pSpriteSheet.width + animOffset + 1,
-    ];
+    int[] walkRight = [3, 4, 5, 4];
 
-    int[] walkRight = [
-        2 * pSpriteSheet.width + animOffset,
-        2 * pSpriteSheet.width + animOffset + 1, 
-        2 * pSpriteSheet.width + animOffset + 2,
-        2 * pSpriteSheet.width + animOffset + 1,
-    ];
+    int[] walkBottom = [6, 7, 8, 7];
 
-    int[] walkBottom = [
-        0 * pSpriteSheet.width + animOffset,
-        0 * pSpriteSheet.width + animOffset + 1, 
-        0 * pSpriteSheet.width + animOffset + 2,
-        0 * pSpriteSheet.width + animOffset + 1,
-    ];
-
-    int[] walkLeft = [
-        1 * pSpriteSheet.width + animOffset,
-        1 * pSpriteSheet.width + animOffset + 1, 
-        1 * pSpriteSheet.width + animOffset + 2,
-        1 * pSpriteSheet.width + animOffset + 1,
-    ];
+    int[] walkLeft = [9, 10, 11, 10];
 
     return CharacterBuilder(pSpriteSheet)
-                .standing(3 * pSpriteSheet.width + animOffset + 1, 
-                          2 * pSpriteSheet.width + animOffset + 1,
-                          0 * pSpriteSheet.width + animOffset + 1,
-                          1 * pSpriteSheet.width + animOffset + 1)
+                .standing(1, 4, 7, 10)
                 .walkingTop(walkTop)
                 .walkingRight(walkRight)
                 .walkingBottom(walkBottom)
