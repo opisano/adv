@@ -88,11 +88,7 @@ final class TopDown : UserInterface
             auto candidates = m_pnj[].filter!(chr => abs(m_char.distance(chr)) < 32 && m_char.facing(chr));
             if (!candidates.empty)
             {
-                string text = candidates.front.interact(m_char);
-                auto dlg = new Dialog(m_pApp);
-                dlg.setText(text);
-                m_pApp.pushInterface(dlg);
-                m_input.setAction(false);
+                interact(candidates.front);
             }
         }
     }
@@ -298,6 +294,15 @@ private:
         {
             m_pnj[i].draw(pRenderer, m_viewport);
         }
+    }
+
+    void interact(scope Character character)
+    {
+        string text = character.interact(m_char);
+        auto dlg = new Dialog(m_pApp);
+        dlg.setText(text);
+        m_pApp.pushInterface(dlg);
+        m_input.setAction(false);
     }
 
     Map m_map;
@@ -859,8 +864,7 @@ final class Character : Entity
     {
         setFacing(c);
 
-        return "Bonjour, ceci est un texte qui doit être découpé en lignes.\nEt une troisième.\n" 
-               ~ "Si ce texte est trop long, il doit être découpé.";
+        return "Viens te battre !";
     }
 
     // Animation data 
