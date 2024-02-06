@@ -14,6 +14,7 @@ import std.format;
 import std.range;
 import std.stdio;
 import std.string;
+import std.traits;
 
 // we want our game to run at 50 fps
 enum MS_PER_UPDATE = 20L;
@@ -44,6 +45,7 @@ struct App
     {
         initializeSDL;
         initJoystick;
+        initEvents;
         loadFont;
         createWindow;
         createStartMenu;
@@ -137,9 +139,14 @@ struct App
         return m_pController;
     }
     
-    TTF_Font* font() 
+    TTF_Font* font() @nogc
     {
         return m_pFont;
+    }
+
+    CustomEvent event(uint type)
+    {
+        return cast(CustomEvent)(type - m_customEventOffset);
     }
 
 private:
@@ -200,6 +207,18 @@ private:
                 break;
             }
         }
+    }
+
+    void initEvents()
+    {
+        int offset = cast(int) EnumMembers!(CustomEvent).length;
+
+        if (offset == cast(uint) -1)
+        {
+            throw new Exception("Cannot allocate custom events");
+        }
+
+        m_customEventOffset = offset;
     }
 
     /** 
@@ -286,12 +305,13 @@ private:
 	SDL_Window* m_pWindow;
     /// The joystick (if any)
     SDL_GameController* m_pController;
-    /// Main loop condition, exit application when set to false
-	bool m_active;
+    /// Text font
+    TTF_Font* m_pFont;
     /// Used for logging
     Logger m_logger;
-
-    TTF_Font* m_pFont;
+    uint m_customEventOffset;
+    /// Main loop condition, exit application when set to false
+	bool m_active;
 }
 
 

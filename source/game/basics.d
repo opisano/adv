@@ -3,17 +3,6 @@ module game.basics;
 import bindbc.sdl;
 import math.vector2d;
 
-/** 
- * Direction a character is facing. 
- */
-enum Orientation
-{
-    Top,
-    Right,
-    Bottom,
-    Left
-}
-
 
 /** 
  * Something to be drawn on the screen
@@ -57,7 +46,7 @@ interface UserInterface : Drawable, Updatable
  *     color     = Color to draw
  *     thickness = thickness in pixels
  */
-void drawMenuRect(scope SDL_Renderer* pRenderer, scope ref const(SDL_Rect) rect, SDL_Color color, int thickness=5) @nogc
+void drawMenuRect(scope SDL_Renderer* pRenderer, ref const(SDL_Rect) rect, SDL_Color color, int thickness=5) @nogc
 {
     // Save render color, in order to restore it later
     ubyte old_r, old_g, old_b, old_a;
@@ -85,7 +74,7 @@ void drawMenuRect(scope SDL_Renderer* pRenderer, scope ref const(SDL_Rect) rect,
  *     rect      = Coordinates of the rectangle to draw
  *     color     = Color to draw
  */
-void fillMenuRect(scope SDL_Renderer* pRenderer, scope ref const(SDL_Rect) rect, SDL_Color color) @nogc
+void fillMenuRect(scope SDL_Renderer* pRenderer, ref const(SDL_Rect) rect, SDL_Color color) @nogc
 {
     // Save render color, in order to restore it later
     ubyte old_r, old_g, old_b, old_a;
@@ -99,29 +88,17 @@ void fillMenuRect(scope SDL_Renderer* pRenderer, scope ref const(SDL_Rect) rect,
 } 
 
 /** 
- * Return whether there is a collision between two boxes or not 
+ * Enumerates custom events used by this game.
  */
-bool collide(scope ref const(SDL_Rect) rect1, scope ref const(SDL_Rect) rect2) pure nothrow @nogc @safe
+enum CustomEvent
 {
-    if((rect2.x > rect1.x + rect1.w)
-            || (rect2.x + rect2.w < rect1.x) 
-            || (rect2.y > rect1.y + rect1.h) 
-            || (rect2.y + rect2.h < rect1.y))
-        return false; 
-    else
-        return true;
+    StartCombat // A combat is triggered
 }
 
-unittest 
+struct EntityStats
 {
-    const r1 = SDL_Rect(0, 0, 32, 32);
-    const r2 = SDL_Rect(100, 100, 32, 32);
-    const r3 = SDL_Rect(16, 16, 32, 32);
-
-    assert (!r1.collide(r2));
-    assert (r1.collide(r3));
+    string name;
+    int hp;
+    int mp;
+    int lvl;
 }
-
-alias ItemId = ubyte;
-alias SpellId = ubyte;
-alias AbilityId = ubyte;

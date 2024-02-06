@@ -41,7 +41,7 @@ struct Window
  * Returns:
  *     true if configuration is valid, false otherwise.
  */
-bool check(scope ref const Window window)
+bool check(ref const Window window)
 {
     bool res = true;
     if (window.width < 512)
@@ -87,7 +87,7 @@ struct Joypad
  * Returns:
  *     true if configuration is valid, false otherwise.
  */
-bool check(scope ref const Joypad joypad)
+bool check(ref const Joypad joypad)
 {
     // Test each button is unique 
     int[3] buttons = [joypad.action, joypad.cancel, joypad.menu];

@@ -89,7 +89,7 @@ private:
                            .build();
     }
 
-    void doKeyDown(scope ref const SDL_KeyboardEvent event)
+    void doKeyDown(ref const SDL_KeyboardEvent event)
     {
         if (event.repeat != 0)
         {
@@ -112,7 +112,7 @@ private:
         }
     }
 
-    void doButtonDown(scope ref const SDL_JoyButtonEvent event)
+    void doButtonDown(ref const SDL_JoyButtonEvent event)
     {
         if (event.button == 0)
         {

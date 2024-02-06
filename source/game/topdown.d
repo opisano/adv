@@ -4,6 +4,7 @@ import bindbc.sdl;
 
 import game.app: App, WINDOW_WIDTH, WINDOW_HEIGHT;
 import game.basics;
+import game.combat;
 import game.dialog;
 import game.sprite;
 import game.map;
@@ -15,6 +16,17 @@ import std.experimental.logger;
 import std.math;
 import std.random;
 import std.stdio;
+
+/** 
+ * Direction a character is facing. 
+ */
+enum Orientation
+{
+    Top,
+    Right,
+    Bottom,
+    Left
+}
 
 /** 
  * A Top-down view such as the one in a typical RPG.
@@ -58,7 +70,7 @@ final class TopDown : UserInterface
      *     pRenderer = The renderer (will store the tiles as textures).
      *     filename = The map file to load. 
      */
-    void loadMap(SDL_Renderer* pRenderer, string filename)
+    void loadMap(scope SDL_Renderer* pRenderer, string filename)
     {
         m_map = game.map.loadMap(pRenderer, filename);
         m_char.m_collision = new MapCollisionComponent(m_char, &m_map);
@@ -167,7 +179,7 @@ final class TopDown : UserInterface
     }
 
 private:
-    void doKeyDown(scope ref SDL_KeyboardEvent keyEvent)
+    void doKeyDown(ref SDL_KeyboardEvent keyEvent)
     {
         switch (keyEvent.keysym.scancode)
         {
@@ -180,7 +192,7 @@ private:
         }
     }
 
-    void doKeyUp(scope ref SDL_KeyboardEvent keyEvent)
+    void doKeyUp(ref SDL_KeyboardEvent keyEvent)
     {
         switch (keyEvent.keysym.scancode)
         {
@@ -193,7 +205,7 @@ private:
         }
     }
 
-    void doButtonDown(scope ref SDL_JoyButtonEvent event)
+    void doButtonDown(ref SDL_JoyButtonEvent event)
     {
         m_logger.tracef("Joystick button %s pressed", event.button);
 
@@ -203,7 +215,7 @@ private:
         }
     }
 
-    void doButtonUp(scope ref SDL_JoyButtonEvent event)
+    void doButtonUp(ref SDL_JoyButtonEvent event)
     {
         m_logger.tracef("Joystick button %s released", event.button);
 
@@ -249,7 +261,7 @@ private:
         }
     }
 
-    void drawMapLayer(scope SDL_Renderer* pRenderer, scope ref Layer layer)
+    void drawMapLayer(scope SDL_Renderer* pRenderer, ref Layer layer)
     {
         foreach (dst, src; layer.data)
         {
@@ -265,7 +277,7 @@ private:
 
     version (Collisions)
     {
-        void drawMapCollisionLayer(scope SDL_Renderer* pRenderer, scope ref Layer layer)
+        void drawMapCollisionLayer(scope SDL_Renderer* pRenderer, ref Layer layer)
         {
             foreach (dst, src; layer.data)
             {
@@ -304,10 +316,19 @@ private:
 
     void interact(scope Character character)
     {
-        string text = character.interact(m_char);
-        auto dlg = new Dialog(m_pApp);
-        dlg.setText(text);
-        m_pApp.pushInterface(dlg);
+        // talk
+        //string text = character.interact(m_char);
+        //auto dlg = new Dialog(m_pApp);
+        //dlg.setText(text);
+        //m_pApp.pushInterface(dlg);
+        //m_input.setAction(false);
+
+        // start fight
+        Combat cb = CombatBuilder(m_pApp)
+                        .background(m_pApp.renderer,  "bg/cave.png")
+                        .addStats(EntityStats("Duke", 62, 0, 34))
+                        .build();
+        m_pApp.pushInterface(cb);
         m_input.setAction(false);
     }
 
@@ -913,4 +934,28 @@ Character createCharacter(SpriteSheet* pSpriteSheet)
                 .walkingBottom(walkBottom)
                 .walkingLeft(walkLeft)
                 .build();
+}
+
+/** 
+ * Return whether there is a collision between two boxes or not 
+ */
+bool collide(ref const(SDL_Rect) rect1, ref const(SDL_Rect) rect2) pure nothrow @nogc @safe
+{
+    if((rect2.x > rect1.x + rect1.w)
+            || (rect2.x + rect2.w < rect1.x) 
+            || (rect2.y > rect1.y + rect1.h) 
+            || (rect2.y + rect2.h < rect1.y))
+        return false; 
+    else
+        return true;
+}
+
+unittest 
+{
+    const r1 = SDL_Rect(0, 0, 32, 32);
+    const r2 = SDL_Rect(100, 100, 32, 32);
+    const r3 = SDL_Rect(16, 16, 32, 32);
+
+    assert (!r1.collide(r2));
+    assert (r1.collide(r3));
 }

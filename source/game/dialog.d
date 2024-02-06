@@ -148,7 +148,7 @@ class Dialog : UserInterface
 
 private:
 
-    void doKeyDown(scope ref SDL_KeyboardEvent event)
+    void doKeyDown(ref SDL_KeyboardEvent event)
     {
         if (event.repeat != 0)
         {
@@ -170,7 +170,7 @@ private:
         }
     }
 
-    void doKeyUp(scope ref SDL_KeyboardEvent event)
+    void doKeyUp(ref SDL_KeyboardEvent event)
     {
         if (event.repeat != 0)
         {
@@ -189,7 +189,7 @@ private:
         }   
     }
 
-    void doButtonDown(scope ref SDL_JoyButtonEvent event)
+    void doButtonDown(ref SDL_JoyButtonEvent event)
     {
         switch (event.button)
         {
@@ -207,7 +207,7 @@ private:
 
     }
 
-    void doButtonUp(scope ref SDL_JoyButtonEvent event)
+    void doButtonUp(ref SDL_JoyButtonEvent event)
     {
         if (event.button == 0)
         {
