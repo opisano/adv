@@ -72,7 +72,7 @@ final class TopDown : UserInterface
      */
     void loadMap(scope SDL_Renderer* pRenderer, string filename)
     {
-        m_map = game.map.loadMap(pRenderer, filename);
+        m_map = game.map.loadXmlMap(pRenderer, filename);
         m_char.m_collision = new MapCollisionComponent(m_char, &m_map);
         foreach (ref pnj; m_pnj)
         {
@@ -392,6 +392,7 @@ abstract class Entity : Updatable
             override void draw(scope SDL_Renderer* pRenderer, SDL_Point viewPort) { }
             override SDL_Rect bbox() const pure { return SDL_Rect( 0, 0, 32, 32); }
             override string interact(scope const(Entity)) { return ""; }
+            override SDL_Rect bboxAtPosition(Vec2f position) const pure { return SDL_Rect.init; }
         }
 
         scope s1 = new Stub;
@@ -418,6 +419,7 @@ abstract class Entity : Updatable
             override void draw(scope SDL_Renderer* pRenderer, SDL_Point viewPort) { }
             override SDL_Rect bbox() const pure { return SDL_Rect( 0, 0, 32, 32); }
             override string interact(scope const(Entity)) { return ""; }
+            override SDL_Rect bboxAtPosition(Vec2f position) const pure { return SDL_Rect.init; }
         }
 
         class Stub2 : Entity
@@ -425,6 +427,7 @@ abstract class Entity : Updatable
             override void draw(scope SDL_Renderer* pRenderer, SDL_Point viewPort) { }
             override SDL_Rect bbox() const pure { return SDL_Rect( 100, 0, 32, 32); }
             override string interact(scope const(Entity)) { return ""; }
+            override SDL_Rect bboxAtPosition(Vec2f position) const pure { return SDL_Rect.init; }
         }
 
         scope Entity s1 = new Stub1;

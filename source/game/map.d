@@ -2,11 +2,18 @@ module game.map;
 
 import bindbc.sdl;
 import core.exception;
-import std.algorithm.searching;
-import std.range.primitives;
+import dxml.dom;
+import std.algorithm;
+import std.array;
+import std.conv;
 import std.exception;
+import std.file;
 import std.format;
+import std.mmfile;
+import std.path;
+import std.range.primitives;
 import std.stdio;
+import std.string;
 
 
 /** 
@@ -274,13 +281,13 @@ struct TileSet
 struct Layer
 {
     ushort id;
-    char[] name;
+    const(char)[] name;
     ushort[] data;
 }
 
 
 /** 
- * Load a Map from a .map file on the disk.
+ * Load a Map from a .xml file on the disk.
  * 
  * Params:
  *     pRenderer: Renderer that will hold the textures in memory.
@@ -289,80 +296,106 @@ struct Layer
  * Returns:
  *     A Map structure containing data loaded from file. 
  */
-Map loadMap(scope SDL_Renderer* pRenderer, string filename) 
+Map loadXmlMap(scope SDL_Renderer* pRenderer, string filename)
 {
     Map result;
-    File f = File(filename, "rb");
 
-    // read magic number
+    scope f = new MmFile(filename);
+    const(char)[] content = cast(const(char)[]) f[];
+    auto dom = parseDOM(content);
+
+    enforce(!dom.children.empty, "Missing map root node");
+
+    auto root = dom.children[0];
+    enforce(root.name == "map", "Root node is not map");
+    
+    // read map dimensions 
+    foreach (attr; root.attributes)
     {
-        ulong[1] buffer;
-        f.rawRead(buffer[]);
-        enforce(buffer[0] == 0x303150414d564441, "Cannot load %s: Invalid map format".format(filename));
+        if (attr.name == "width")
+            result.width = attr.value.to!ushort;
+        else if (attr.name == "height")
+            result.height = attr.value.to!ushort;
+        else if (attr.name == "tilewidth") 
+            result.tileWidth = attr.value.to!ushort;
+        else if (attr.name == "tileheight")
+            result.tileHeight = attr.value.to!ushort;
     }
 
-    // read map dimensions
+    enforce(result.width > 0 &&
+            result.height > 0 && 
+            result.tileWidth > 0 && 
+            result.tileHeight > 0, "Map dimensions not set");
+
+    // read tilesets 
+    foreach (tileSetElem; root.children.filter!(elem => elem.name == "tileset"))
     {
-        ushort[4] buffer;
-        ushort[] b = f.rawRead!ushort(buffer[]);
+        auto pts = new TileSet;
 
-        result.width = b[0];
-        result.height = b[1];
-        result.tileWidth = b[2];
-        result.tileHeight = b[3];
-    }
-
-    // Read tile sets 
-    {
-        ushort[1] buffer;
-        f.rawRead!ushort(buffer[]);
-        int len = buffer[0];
-        result.tileSets.reserve(len);
-
-        for (int i = 0; i < len; ++i)
+        foreach (attr; tileSetElem.attributes)
         {
-            ushort[5] buffer2;
-            result.tileSets ~= new TileSet();
-            ushort[] b = f.rawRead!ushort(buffer2[]);
-            result.tileSets[$-1].firstGid = b[0];
-            result.tileSets[$-1].tileWidth = b[1];
-            result.tileSets[$-1].tileHeight = b[2];
-            result.tileSets[$-1].tileCount = b[3];
-            result.tileSets[$-1].columns = b[4];
-
-            char[] chars;
-            f.rawRead!ushort(buffer[]);
-            chars ~= "tiles/";
-            chars.length = buffer[0] + "tiles/".length;
-            f.rawRead!char(chars[6..$]);
-            chars ~= '\0';
-
-            result.tileSets[$-1].pTexture = IMG_LoadTexture(pRenderer, &chars[0]);
-            enforce(result.tileSets[$-1].pTexture != null, "Could not load file %s".format(chars[]));
+            if (attr.name == "firstgid")
+                pts.firstGid = attr.value.to!ushort;
+            else if (attr.name == "tilewidth")
+                pts.tileWidth = attr.value.to!ushort;
+            else if (attr.name == "tileheight")
+                pts.tileHeight = attr.value.to!ushort;
+            else if (attr.name == "tilecount")
+                pts.tileCount = attr.value.to!ushort;
+            else if (attr.name == "columns")
+                pts.columns = attr.value.to!ushort;
         }
+
+        // load tile set image 
+        auto images = tileSetElem.children.filter!(child => child.name == "image");
+        enforce(!images.empty, "Tileset is missing image child");
+
+        auto image = images.front;
+        auto source = image.attributes.filter!(attr => attr.name == "source");
+        enforce(!source.empty, "Missing image source attribute");
+
+        auto path = buildPath("tiles", baseName(source.front.value)).toStringz;
+
+        pts.pTexture = IMG_LoadTexture(pRenderer, path);
+
+        if (pts.pTexture == null)
+        {
+            auto reason = IMG_GetError().fromStringz;
+            string message = "Could not load file %s: %s".format(path, reason);
+
+            throw new Exception(message);
+        }
+
+        enforce(pts.pTexture != null, );
+
+
+        result.tileSets ~= pts;
     }
 
-    // Read layers 
+    foreach (layerElem; root.children.filter!(elem => elem.name == "layer"))
     {
-        ushort[1] buffer;
-        f.rawRead!ushort(buffer[]);
-        int len = buffer[0];
-        result.layers.reserve(len);
+        Layer lay;
 
-        for (int i = 0; i < len; ++i)
+        foreach (attr; layerElem.attributes)
         {
-            ushort[2] buffer2;
-            result.layers ~= Layer();
-            auto b = f.rawRead!ushort(buffer2[]);
-            result.layers[$-1].id = b[0];
-            result.layers[$-1].name.length = b[1];
-            f.rawRead!char(result.layers[$-1].name[]);
-             
-
-            f.rawRead!ushort(buffer[]);
-            result.layers[$-1].data.length = buffer[0];
-            f.rawRead!ushort(result.layers[$-1].data[]);
+            if (attr.name == "id")
+                lay.id = attr.value.to!ushort;
+            else if (attr.name == "name")
+                lay.name = attr.value.dup;
         }
+
+        // load layer data 
+        auto data = layerElem.children.filter!(c => c.name == "data");
+        enforce (!data.empty, "Missing layer data");
+        
+        lay.data = data.front
+                       .children
+                       .front
+                       .text
+                       .splitter(',')
+                       .map!(num => num.strip('\n').to!ushort)
+                       .array;
+        result.layers ~= lay;
     }
 
     return result;

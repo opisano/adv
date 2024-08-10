@@ -132,7 +132,7 @@ private:
     {
         // Create 
         auto ui = new TopDown(m_pApp);
-        ui.loadMap(m_pApp.renderer(), "./maps/01.map");
+        ui.loadMap(m_pApp.renderer(), "./maps/01.xml");
 
         // Remove start menu 
         m_pApp.popInterface();
